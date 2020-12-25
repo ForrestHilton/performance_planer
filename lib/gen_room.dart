@@ -1,14 +1,14 @@
-// This file generated 05:01:18 PM 28 11 (November) 2020
+// This file generated 08:46:37 PM 29 11 (November) 2020
 // using https://app.quicktype.io/ , the room.json, and the options, encoder+decoder and require all.
 // To parse this JSON data, do
 //
-//     final welcome = welcomeFromJson(jsonString);
+//     final room = roomFromJson(jsonString);
 
 import 'package:meta/meta.dart';
 import 'dart:convert';
 
-class Welcome {
-    Welcome({
+class Room {
+    Room({
         @required this.vertices,
         @required this.edges,
         @required this.pews,
@@ -16,22 +16,22 @@ class Welcome {
 
     List<Vertex> vertices;
     List<Edge> edges;
-    Pews pews;
+    List<Pew> pews;
 
-    factory Welcome.fromRawJson(String str) => Welcome.fromJson(json.decode(str));
+    factory Room.fromRawJson(String str) => Room.fromJson(json.decode(str));
 
     String toRawJson() => json.encode(toJson());
 
-    factory Welcome.fromJson(Map<String, dynamic> json) => Welcome(
+    factory Room.fromJson(Map<String, dynamic> json) => Room(
         vertices: List<Vertex>.from(json["vertices"].map((x) => Vertex.fromJson(x))),
         edges: List<Edge>.from(json["edges"].map((x) => Edge.fromJson(x))),
-        pews: Pews.fromJson(json["pews"]),
+        pews: List<Pew>.from(json["pews"].map((x) => Pew.fromJson(x))),
     );
 
     Map<String, dynamic> toJson() => {
         "vertices": List<dynamic>.from(vertices.map((x) => x.toJson())),
         "edges": List<dynamic>.from(edges.map((x) => x.toJson())),
-        "pews": pews.toJson(),
+        "pews": List<dynamic>.from(pews.map((x) => x.toJson())),
     };
 }
 
@@ -59,48 +59,31 @@ class Edge {
     };
 }
 
-class Pews {
-    Pews({
-        @required this.a,
-    });
-
-    A a;
-
-    factory Pews.fromRawJson(String str) => Pews.fromJson(json.decode(str));
-
-    String toRawJson() => json.encode(toJson());
-
-    factory Pews.fromJson(Map<String, dynamic> json) => Pews(
-        a: A.fromJson(json["A"]),
-    );
-
-    Map<String, dynamic> toJson() => {
-        "A": a.toJson(),
-    };
-}
-
-class A {
-    A({
+class Pew {
+    Pew({
         @required this.fr,
         @required this.fl,
         @required this.br,
         @required this.bl,
+        @required this.name,
     });
 
     int fr;
     int fl;
     int br;
     int bl;
+    String name;
 
-    factory A.fromRawJson(String str) => A.fromJson(json.decode(str));
+    factory Pew.fromRawJson(String str) => Pew.fromJson(json.decode(str));
 
     String toRawJson() => json.encode(toJson());
 
-    factory A.fromJson(Map<String, dynamic> json) => A(
+    factory Pew.fromJson(Map<String, dynamic> json) => Pew(
         fr: json["fr"],
         fl: json["fl"],
         br: json["br"],
         bl: json["bl"],
+        name: json["name"],
     );
 
     Map<String, dynamic> toJson() => {
@@ -108,6 +91,7 @@ class A {
         "fl": fl,
         "br": br,
         "bl": bl,
+        "name": name,
     };
 }
 
@@ -117,8 +101,8 @@ class Vertex {
         @required this.y,
     });
 
-    int x;
-    int y;
+    double x;
+    double y;
 
     factory Vertex.fromRawJson(String str) => Vertex.fromJson(json.decode(str));
 
