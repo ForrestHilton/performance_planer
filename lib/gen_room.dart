@@ -87,7 +87,7 @@ class Pew {
     );
 
     Map<String, dynamic> toJson() => {
-        "fr": fr,
+      "fr": fr,
         "fl": fl,
         "br": br,
         "bl": bl,
