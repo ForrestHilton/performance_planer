@@ -3,11 +3,12 @@ import 'dart:core';
 import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
+
+import 'package:archive/archive.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:file_picker/file_picker.dart';
 
 import 'gen_room.dart';
 import 'keyboard_shortcuts.dart';
@@ -32,14 +33,11 @@ class RoomEditor extends StatefulWidget {
 }
 
 class _RoomEditorState extends State<RoomEditor> {
-  late String path;
   Room room = Room.fromRawJson(
       """ {"vertices":[{"x":0.5,"y":0.3},{"x":0.5,"y":0.2}],"edges":[{"a":0,"b":1}],"pews":[]} """);
   List<String> histrory = [];
 
-  String imagePath =
-      '/home/forresthilton/Projects/flutter/stager_shell/user_files/Room Image.png';
-
+  late String path;
   late File file;
   double? aspectratio;
 
@@ -54,7 +52,8 @@ class _RoomEditorState extends State<RoomEditor> {
 
   @override
   Widget build(BuildContext context) {
-    loadImage();
+    loadImage("./user_files/room.png");
+
     List<Action> ribbonActions = [
       Action(
         name: "Import",
@@ -63,14 +62,29 @@ class _RoomEditorState extends State<RoomEditor> {
         function: () {
           setState(() {
             // show a dialog to open a file
+            print("asdf");
             FilePicker.platform.pickFiles(type: FileType.any).then((value) {
               if (value == null) {
                 return;
+              } else {
+                // presumably image
+
               }
               this.path = value.paths[0]!;
-              this.room = Room.fromRawJson(File(path).readAsStringSync());
             });
           });
+          if (path.endsWith(".zip")) {
+            final bytes = File('test.zip').readAsBytesSync();
+            final archive = ZipDecoder().decodeBytes(bytes);
+            for (final file in archive) {
+              final filename = file.name;
+              assert(file.isFile); // Directory
+              final data = file.content as List<int>;
+              if (filename.endsWith(".json")) {
+                this.room = Room.fromRawJson(file.content.toString());
+              } else {}
+            }
+          } else {}
         },
       ),
       Action(
@@ -187,6 +201,7 @@ class _RoomEditorState extends State<RoomEditor> {
         },
       ),
     ];
+
     final shortcuts = ribbonActions
         .map((actionDescription) => KeyBoardShortcut(
             onKeysPressed: actionDescription.function,
@@ -196,7 +211,11 @@ class _RoomEditorState extends State<RoomEditor> {
     ribbonActions.removeWhere((description) => description.name == null);
     final buttons = ribbonActions
         .map((description) => ElevatedButton(
-            onPressed: (description.nullCondition != null && description.nullCondition!()) ? null : description.function, child: Text(description.name!)))
+            onPressed: (description.nullCondition != null &&
+                    description.nullCondition!())
+                ? null
+                : description.function,
+            child: Text(description.name!)))
         .toList();
 
     return Scaffold(
@@ -209,7 +228,7 @@ class _RoomEditorState extends State<RoomEditor> {
             child: LayoutBuilder(builder: this._pageBody)));
   }
 
-  void loadImage() async {
+  void loadImage(String imagePath) async {
     if (aspectratio != null) return;
     file = File(imagePath);
     final decoded = await decodeImageFromList(file.readAsBytesSync());

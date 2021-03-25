@@ -27,6 +27,7 @@ dependencies:
   file_picker: 
   visibility_detector:  0.2.0-nullsafety.1
   tuple:
+  archive: 
 
 
 dev_dependencies:
