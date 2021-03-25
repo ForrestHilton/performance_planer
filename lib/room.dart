@@ -21,7 +21,7 @@ class Action {
       required this.shortcut});
   final String? name;
   final String description;
-  final VoidCallback? nullCondition;
+  final bool Function()? nullCondition;
   final VoidCallback function;
   final Set<LogicalKeyboardKey> shortcut;
 }
@@ -114,9 +114,9 @@ class _RoomEditorState extends State<RoomEditor> {
       ),
       Action(
         name: "Connect",
-        description: "",
+        description: "Connect two edges",
         shortcut: {LogicalKeyboardKey.space, LogicalKeyboardKey.control},
-        nullCondition: () => selectedVertices == [],
+        nullCondition: () => selectedVertices.length != 2,
         function: () {
           editRoom(() {
             if (selectedVertices.length == 2) {
@@ -195,8 +195,8 @@ class _RoomEditorState extends State<RoomEditor> {
         .toList();
     ribbonActions.removeWhere((description) => description.name == null);
     final buttons = ribbonActions
-        .map((descritpion) => ElevatedButton(
-            onPressed: descritpion.function, child: Text(descritpion.name!)))
+        .map((description) => ElevatedButton(
+            onPressed: (description.nullCondition != null && description.nullCondition!()) ? null : description.function, child: Text(description.name!)))
         .toList();
 
     return Scaffold(

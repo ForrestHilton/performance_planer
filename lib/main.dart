@@ -17,13 +17,13 @@ class HomeRoute extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Procession Planing'),
+        title: Text('Performance Planer'),
         backgroundColor: Colors.green,
       ),
       body: Center(
           child: Column(
         children: <Widget>[
-          RaisedButton(
+          ElevatedButton(
             child: Text('Room Editor'),
             onPressed: () {
               Navigator.pushNamed(context, '/room_editor');
