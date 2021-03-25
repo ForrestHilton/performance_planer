@@ -1,10 +1,10 @@
+// Copyright 2021 Forrest Hilton; licensed under GPL-3.0-or-later; See COPYING.txt
 // This file generated 08:46:37 PM 29 11 (November) 2020
 // using https://app.quicktype.io/ , the room.json, and the options, encoder+decoder and require all.
 // To parse this JSON data, do
 //
 //     final room = roomFromJson(jsonString);
 
-import 'package:meta/meta.dart';
 import 'dart:convert';
 
 class Room {
@@ -41,8 +41,8 @@ class Edge {
         required this.b,
     });
 
-    int? a;
-    int? b;
+    int a;
+    int b;
 
     factory Edge.fromRawJson(String str) => Edge.fromJson(json.decode(str));
 

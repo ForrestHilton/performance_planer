@@ -24,9 +24,9 @@ dependencies:
   flutter:
     sdk: flutter
 
-  file_picker_cross: ^4.2.6
-  keyboard_shortcuts: 
-    path: ../keyboard_shortcuts
+  file_picker: 
+  visibility_detector:  0.2.0-nullsafety.1
+  tuple:
 
 
 dev_dependencies:

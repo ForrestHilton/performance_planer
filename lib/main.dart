@@ -1,3 +1,4 @@
+// Copyright 2021 Forrest Hilton; licensed under GPL-3.0-or-later; See COPYING.txt
 import 'package:flutter/material.dart';
 import 'package:stager_shell/room.dart';
 

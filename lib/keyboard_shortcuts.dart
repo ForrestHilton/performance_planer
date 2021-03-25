@@ -1,3 +1,6 @@
+// Copyright 2020 Antoine Marcel https://github.com/AntoineMarcel/keyboard_shortcuts
+// His version is available under a MIT License.
+// Copyright 2021 Forrest Hilton; licensed under GPL-3.0-or-later; See COPYING.txt
 library keyboard_shortcuts;
 
 import 'package:flutter/foundation.dart';

@@ -1,3 +1,4 @@
+// Copyright 2021 Forrest Hilton; licensed under GPL-3.0-or-later; See COPYING.txt
 import 'dart:core';
 import 'dart:io';
 import 'dart:math';
@@ -6,10 +7,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:file_picker_cross/file_picker_cross.dart';
+import 'package:file_picker/file_picker.dart';
 
 import 'gen_room.dart';
 import 'keyboard_shortcuts.dart';
+
+class Action {
+  Action(
+      {this.name,
+      required this.description,
+      this.nullCondition,
+      required this.function,
+      required this.shortcut});
+  final String? name;
+  final String description;
+  final VoidCallback? nullCondition;
+  final VoidCallback function;
+  final Set<LogicalKeyboardKey> shortcut;
+}
 
 class RoomEditor extends StatefulWidget {
   @override
@@ -18,7 +33,8 @@ class RoomEditor extends StatefulWidget {
 
 class _RoomEditorState extends State<RoomEditor> {
   late String path;
-  Room room = Room.fromRawJson(""" {"vertices":[{"x":0.5,"y":0.3},{"x":0.5,"y":0.2}],"edges":[{"a":0,"b":1}],"pews":[]} """);
+  Room room = Room.fromRawJson(
+      """ {"vertices":[{"x":0.5,"y":0.3},{"x":0.5,"y":0.2}],"edges":[{"a":0,"b":1}],"pews":[]} """);
   List<String> histrory = [];
 
   String imagePath =
@@ -38,125 +54,162 @@ class _RoomEditorState extends State<RoomEditor> {
 
   @override
   Widget build(BuildContext context) {
-    load();
+    loadImage();
+    List<Action> ribbonActions = [
+      Action(
+        name: "Import",
+        description: "Import your image or a zip file saving your edit",
+        shortcut: {LogicalKeyboardKey.control, LogicalKeyboardKey.keyO},
+        function: () {
+          setState(() {
+            // show a dialog to open a file
+            FilePicker.platform.pickFiles(type: FileType.any).then((value) {
+              if (value == null) {
+                return;
+              }
+              this.path = value.paths[0]!;
+              this.room = Room.fromRawJson(File(path).readAsStringSync());
+            });
+          });
+        },
+      ),
+      Action(
+        name: "Remove",
+        description: "Remove all selected vertices and there nodes",
+        shortcut: {LogicalKeyboardKey.backspace},
+        function: () {
+          selectedVertices.sort((a, b) => b.compareTo(a));
+          List<Edge> newEdges = [];
+          OUTER:
+          for (final edge in room.edges) {
+            List<int> newEdgeIndices = [];
+            for (int endIndex in [edge.a, edge.b]) {
+              if (selectedVertices.contains(endIndex)) {
+                continue OUTER;
+              }
+              int decrementBy = 0;
+              for (int selected in selectedVertices) {
+                if (selected < endIndex) {
+                  decrementBy += 1;
+                } else {
+                  break;
+                }
+              }
+              print(decrementBy);
+              endIndex -= decrementBy;
+              newEdgeIndices.add(endIndex);
+            }
+            newEdges.add(Edge(a: newEdgeIndices[0], b: newEdgeIndices[1]));
+          }
+          editRoom(() {
+            room.edges = newEdges;
+
+            for (final index in selectedVertices) {
+              room.vertices.removeAt(index);
+            }
+            print(room.toRawJson());
+            selectedVertices = [];
+          });
+        },
+      ),
+      Action(
+        name: "Connect",
+        description: "",
+        shortcut: {LogicalKeyboardKey.space, LogicalKeyboardKey.control},
+        nullCondition: () => selectedVertices == [],
+        function: () {
+          editRoom(() {
+            if (selectedVertices.length == 2) {
+              room.edges
+                  .add(Edge(a: selectedVertices[0], b: selectedVertices[1]));
+            }
+          });
+        },
+      ),
+      Action(
+        description: "Move all selected vertices",
+        shortcut: {LogicalKeyboardKey.arrowUp},
+        nullCondition: () => selectedVertices == [],
+        function: () {
+          editRoom(() {
+            // TODO: bounding box
+            for (int index in selectedVertices) {
+              room.vertices[index].y += 0.002;
+            }
+          });
+        },
+      ),
+      Action(
+        description: "Move all selected vertices",
+        shortcut: {LogicalKeyboardKey.arrowDown},
+        nullCondition: () => selectedVertices == [],
+        function: () {
+          editRoom(() {
+            for (int index in selectedVertices) {
+              room.vertices[index].y -= 0.002;
+            }
+          });
+        },
+      ),
+      Action(
+        description: "Move all selected vertices",
+        shortcut: {LogicalKeyboardKey.arrowRight},
+        nullCondition: () => selectedVertices == [],
+        function: () {
+          editRoom(() {
+            for (int index in selectedVertices) {
+              room.vertices[index].x += 0.002;
+            }
+          });
+        },
+      ),
+      Action(
+        description: "Move all selected vertices",
+        shortcut: {LogicalKeyboardKey.arrowLeft},
+        nullCondition: () => selectedVertices == [],
+        function: () {
+          editRoom(() {
+            for (int index in selectedVertices) {
+              room.vertices[index].x -= 0.002;
+            }
+          });
+        },
+      ),
+      Action(
+        name: "Undo",
+        description: "Undo the last change",
+        shortcut: {LogicalKeyboardKey.keyZ, LogicalKeyboardKey.control},
+        function: () {
+          setState(() {
+            this.room = Room.fromRawJson(histrory.last);
+          });
+          histrory.removeLast();
+        },
+      ),
+    ];
+    final shortcuts = ribbonActions
+        .map((actionDescription) => KeyBoardShortcut(
+            onKeysPressed: actionDescription.function,
+            keysToPress: actionDescription.shortcut,
+            helpLabel: actionDescription.description))
+        .toList();
+    ribbonActions.removeWhere((description) => description.name == null);
+    final buttons = ribbonActions
+        .map((descritpion) => ElevatedButton(
+            onPressed: descritpion.function, child: Text(descritpion.name!)))
+        .toList();
+
     return Scaffold(
         appBar: AppBar(
             title: Text("Room Editor"),
             backgroundColor: Colors.green,
-            actions: <Widget>[
-              ElevatedButton(
-                child: Text('Import'),
-                onPressed: () {
-                  setState(() {
-                    // show a dialog to open a file
-                    FilePickerCross.importFromStorage(type: FileTypeCross.any)
-                        .then((value) {
-                      this.path = value.path;
-                      this.room =
-                          Room.fromRawJson(File(path).readAsStringSync());
-                    });
-                  });
-                },
-              ),
-              ElevatedButton(
-                child: Text('Remove'),
-                onPressed: selectedVertices == []
-                    ? null
-                    : () {
-                        editRoom(() {
-                          print("check point 1");
-                          for (final edge in room.edges) {
-                            if (selectedVertices.contains(edge.a) |
-                                selectedVertices.contains(edge.b)) {
-                              room.edges.remove(edge);
-                            }
-                          }
-                          for (final index in selectedVertices) {
-                            room.vertices.remove(index);
-                          }
-                          selectedVertices = [];
-                          print("check point 2");
-                        });
-                      },
-              ),
-              ElevatedButton(
-                child: Text('Connect'),
-                onPressed: selectedVertices == []
-                    ? null
-                    : () {
-                        editRoom(() {
-                          if (selectedVertices.length == 2) {
-                            room.edges.add(Edge(
-                                a: selectedVertices[0],
-                                b: selectedVertices[1]));
-                          }
-                        });
-                      },
-              )
-            ]),
-        body: KeyBoardShortcuts(shortcuts: [
-          KeyBoardShortcut(
-            keysToPress: {LogicalKeyboardKey.arrowUp},
-            onKeysPressed: () {
-              editRoom(() {
-                // TODO: bounding box
-                for (int index in selectedVertices) {
-                  room.vertices[index].y += 0.002;
-                }
-              });
-            },
-            helpLabel: "move selected vertex by height/500",
-          ),
-          KeyBoardShortcut(
-            keysToPress: {LogicalKeyboardKey.arrowDown},
-            onKeysPressed: () {
-              editRoom(() {
-                for (int index in selectedVertices) {
-                  room.vertices[index].y -= 0.002;
-                }
-              });
-            },
-            helpLabel: "move selected vertex by height/500",
-          ),
-          KeyBoardShortcut(
-            keysToPress: {LogicalKeyboardKey.arrowRight},
-            onKeysPressed: () {
-              editRoom(() {
-                for (int index in selectedVertices) {
-                  room.vertices[index].x += 0.002;
-                }
-              });
-            },
-            helpLabel: "move selected vertex by height/500",
-          ),
-          KeyBoardShortcut(
-            keysToPress: {LogicalKeyboardKey.arrowLeft},
-            onKeysPressed: () {
-              editRoom(() {
-                for (int index in selectedVertices) {
-                  room.vertices[index].x -= 0.002;
-                }
-              });
-            },
-            helpLabel: "move selected vertex by height/500",
-          ),
-          KeyBoardShortcut(
-              keysToPress: {
-                LogicalKeyboardKey.keyZ,
-                LogicalKeyboardKey.control
-              },
-              onKeysPressed: () {
-                setState(() {
-                  //TODO: fix with sound null safety
-                  this.room = Room.fromRawJson(histrory.last);
-                });
-                histrory.removeLast();
-              },
-              helpLabel: "undo (there is no redo)"),
-        ], child: LayoutBuilder(builder: this._pageBody)));
+            actions: buttons),
+        body: KeyBoardShortcuts(
+            shortcuts: shortcuts,
+            child: LayoutBuilder(builder: this._pageBody)));
   }
 
-  void load() async {
+  void loadImage() async {
     if (aspectratio != null) return;
     file = File(imagePath);
     final decoded = await decodeImageFromList(file.readAsBytesSync());
@@ -240,8 +293,8 @@ class _RoomEditorState extends State<RoomEditor> {
     );
 
     List<Positioned> edge(Edge info) {
-      final a = room.vertices[info.a!];
-      final b = room.vertices[info.b!];
+      final a = room.vertices[info.a];
+      final b = room.vertices[info.b];
       final dx = a.x - b.x;
       final dy = a.y - b.y;
       final distance = sqrt(dx * dx + dy * dy);
@@ -261,8 +314,6 @@ class _RoomEditorState extends State<RoomEditor> {
       }).toList();
     }
 
-    print("checkpoint 3");
-    print(room.toRawJson());
     final ret = Stack(
       children: [
             Positioned(
@@ -281,9 +332,9 @@ class _RoomEditorState extends State<RoomEditor> {
           // these lists only if there are edges.
           (room.edges == []
               ? []
-              : room.edges.map((e) {
+              : (room.edges.map((e) {
                   return edge(e);
-                }).reduce((a, b) => a + b)) +
+                }).reduce((a, b) => a + b))) +
           room.vertices.map((r) {
             final i = room.vertices.indexOf(r);
             //TODO Dragable
@@ -301,11 +352,10 @@ class _RoomEditorState extends State<RoomEditor> {
                       });
                     },
                     child: selectedVertices.contains(i)
-                            ? highlightedVertex
-                            : vertex));
+                        ? highlightedVertex
+                        : vertex));
           }).toList(),
     );
-    print("checkpoint 4");
     return ret;
   }
 }
