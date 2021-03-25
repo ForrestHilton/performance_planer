@@ -17,17 +17,17 @@ class RoomEditor extends StatefulWidget {
 }
 
 class _RoomEditorState extends State<RoomEditor> {
-  String path;
-  Room room = Room.fromRawJson(""" {"vertices":[],"edges":[],"pews":[]} """);
+  late String path;
+  Room room = Room.fromRawJson(""" {"vertices":[{"x":0.5,"y":0.3},{"x":0.5,"y":0.2}],"edges":[{"a":0,"b":1}],"pews":[]} """);
   List<String> histrory = [];
 
   String imagePath =
       '/home/forresthilton/Projects/flutter/stager_shell/user_files/Room Image.png';
 
-  File file;
-  double aspectratio;
+  late File file;
+  double? aspectratio;
 
-  int selectedVertex;
+  List<int> selectedVertices = [];
 
   void editRoom(void Function() action) {
     histrory.add(room.toRawJson());
@@ -44,7 +44,7 @@ class _RoomEditorState extends State<RoomEditor> {
             title: Text("Room Editor"),
             backgroundColor: Colors.green,
             actions: <Widget>[
-              RaisedButton(
+              ElevatedButton(
                 child: Text('Import'),
                 onPressed: () {
                   setState(() {
@@ -58,41 +58,51 @@ class _RoomEditorState extends State<RoomEditor> {
                   });
                 },
               ),
-              RaisedButton(
+              ElevatedButton(
                 child: Text('Remove'),
-                onPressed: selectedVertex == null
+                onPressed: selectedVertices == []
                     ? null
                     : () {
                         editRoom(() {
-                          room.vertices.removeAt(selectedVertex);
-                          selectedVertex = null;
+                          print("check point 1");
+                          for (final edge in room.edges) {
+                            if (selectedVertices.contains(edge.a) |
+                                selectedVertices.contains(edge.b)) {
+                              room.edges.remove(edge);
+                            }
+                          }
+                          for (final index in selectedVertices) {
+                            room.vertices.remove(index);
+                          }
+                          selectedVertices = [];
+                          print("check point 2");
+                        });
+                      },
+              ),
+              ElevatedButton(
+                child: Text('Connect'),
+                onPressed: selectedVertices == []
+                    ? null
+                    : () {
+                        editRoom(() {
+                          if (selectedVertices.length == 2) {
+                            room.edges.add(Edge(
+                                a: selectedVertices[0],
+                                b: selectedVertices[1]));
+                          }
                         });
                       },
               )
             ]),
         body: KeyBoardShortcuts(shortcuts: [
           KeyBoardShortcut(
-            keysToPress: {LogicalKeyboardKey.backspace},
-            onKeysPressed: () {
-              if (selectedVertex == null) {
-                // TODO: Bell Sound
-                return;
-              }
-              editRoom(() {
-                room.vertices.removeAt(selectedVertex);
-                selectedVertex = null;
-              });
-            },
-            helpLabel: "Remove Selected Vertex",
-          ),
-          KeyBoardShortcut(
             keysToPress: {LogicalKeyboardKey.arrowUp},
             onKeysPressed: () {
-              if (selectedVertex == null) return;
               editRoom(() {
                 // TODO: bounding box
-                // TODO: switch to pixel based
-                room.vertices[selectedVertex].y += 0.002;
+                for (int index in selectedVertices) {
+                  room.vertices[index].y += 0.002;
+                }
               });
             },
             helpLabel: "move selected vertex by height/500",
@@ -100,9 +110,10 @@ class _RoomEditorState extends State<RoomEditor> {
           KeyBoardShortcut(
             keysToPress: {LogicalKeyboardKey.arrowDown},
             onKeysPressed: () {
-              if (selectedVertex == null) return;
               editRoom(() {
-                room.vertices[selectedVertex].y -= 0.002;
+                for (int index in selectedVertices) {
+                  room.vertices[index].y -= 0.002;
+                }
               });
             },
             helpLabel: "move selected vertex by height/500",
@@ -110,9 +121,10 @@ class _RoomEditorState extends State<RoomEditor> {
           KeyBoardShortcut(
             keysToPress: {LogicalKeyboardKey.arrowRight},
             onKeysPressed: () {
-              if (selectedVertex == null) return;
               editRoom(() {
-                room.vertices[selectedVertex].x += 0.002;
+                for (int index in selectedVertices) {
+                  room.vertices[index].x += 0.002;
+                }
               });
             },
             helpLabel: "move selected vertex by height/500",
@@ -120,9 +132,10 @@ class _RoomEditorState extends State<RoomEditor> {
           KeyBoardShortcut(
             keysToPress: {LogicalKeyboardKey.arrowLeft},
             onKeysPressed: () {
-              if (selectedVertex == null) return;
               editRoom(() {
-                room.vertices[selectedVertex].x -= 0.002;
+                for (int index in selectedVertices) {
+                  room.vertices[index].x -= 0.002;
+                }
               });
             },
             helpLabel: "move selected vertex by height/500",
@@ -166,16 +179,16 @@ class _RoomEditorState extends State<RoomEditor> {
     double leftPading;
     double bottomPading;
 
-    if (cnts.maxHeight > aspectratio * cnts.maxWidth) {
+    if (cnts.maxHeight > aspectratio! * cnts.maxWidth) {
       // room on top
-      height = aspectratio * cnts.maxWidth;
+      height = aspectratio! * cnts.maxWidth;
       width = cnts.maxWidth;
       bottomPading = (cnts.maxHeight - height) / 2;
       leftPading = 0;
     } else {
       //room on sides
       height = cnts.maxHeight;
-      width = cnts.maxHeight / aspectratio;
+      width = cnts.maxHeight / aspectratio!;
       leftPading = (cnts.maxWidth - width) / 2;
       bottomPading = 0;
     }
@@ -188,7 +201,7 @@ class _RoomEditorState extends State<RoomEditor> {
     }
 
     final double vertexSizeInPixels = width / 80;
-    final double dashSizeInPixels = width / 160;
+    final double dashSizeInPixels = width / 220;
 
     final vertex = Container(
       // TODO: change size to be screen dependent
@@ -213,7 +226,7 @@ class _RoomEditorState extends State<RoomEditor> {
         border: Border.all(width: vertexSizeInPixels / 4, color: Colors.blue),
       ),
     );
-    
+
     final dash = Container(
       // TODO: change size to be screen dependent
       // TODO: fix colors
@@ -221,35 +234,36 @@ class _RoomEditorState extends State<RoomEditor> {
       height: dashSizeInPixels,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.red,
+        color: Colors.green,
         border: null,
       ),
     );
 
     List<Positioned> edge(Edge info) {
-      final a = room.vertices[info.a];
-      final b = room.vertices[info.b];
+      final a = room.vertices[info.a!];
+      final b = room.vertices[info.b!];
       final dx = a.x - b.x;
       final dy = a.y - b.y;
       final distance = sqrt(dx * dx + dy * dy);
-      final numberOfDots = (distance * 50).ceil();
+      final numberOfDots = (distance * 1000).ceil();
       final stepx = dx / numberOfDots;
       final stepy = dy / numberOfDots;
       //hear a Vertex represents the position of a dot representing part of an edge
-      final List<Vertex> positions = List.generate(numberOfDots, (i) => 1 + i)
-          .map((i) => Vertex(x: b.x + stepx * i, y: b.y + stepy * i));
+      final List<Vertex> positions = List.generate(numberOfDots, (j) {
+        int i = j + 1;
+        return Vertex(x: b.x + stepx * i, y: b.y + stepy * i);
+      });
       return positions.map((r) {
         return Positioned(
             bottom: r.y * height + bottomPading - dashSizeInPixels / 2,
             left: r.x * width + leftPading - dashSizeInPixels / 2,
-            child: 
-            selectedVertex != null && r == room.vertices[selectedVertex]
-            ? highlightedVertex
-            : vertex);
+            child: dash);
       }).toList();
     }
 
-    return Stack(
+    print("checkpoint 3");
+    print(room.toRawJson());
+    final ret = Stack(
       children: [
             Positioned(
                 child: GestureDetector(
@@ -263,23 +277,35 @@ class _RoomEditorState extends State<RoomEditor> {
                     },
                     child: image))
           ] +
-          //TODO :edges
+          // the next line maps the edge data to a list of dots then combines
+          // these lists only if there are edges.
+          (room.edges == []
+              ? []
+              : room.edges.map((e) {
+                  return edge(e);
+                }).reduce((a, b) => a + b)) +
           room.vertices.map((r) {
-            //TODO :Dragable
+            final i = room.vertices.indexOf(r);
+            //TODO Dragable
             return Positioned(
                 bottom: r.y * height + bottomPading - vertexSizeInPixels / 2,
                 left: r.x * width + leftPading - vertexSizeInPixels / 2,
                 child: GestureDetector(
                     onTap: () {
                       setState(() {
-                        selectedVertex = room.vertices.indexOf(r);
+                        if (selectedVertices.contains(i)) {
+                          selectedVertices.remove(i);
+                        } else {
+                          selectedVertices.add(i);
+                        }
                       });
                     },
-                    child: selectedVertex != null &&
-                            r == room.vertices[selectedVertex]
-                        ? highlightedVertex
-                        : vertex));
+                    child: selectedVertices.contains(i)
+                            ? highlightedVertex
+                            : vertex));
           }).toList(),
     );
+    print("checkpoint 4");
+    return ret;
   }
 }

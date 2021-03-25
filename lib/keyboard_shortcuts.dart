@@ -6,8 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:tuple/tuple.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
-String _customTitle;
-IconData _customIcon;
+String? _customTitle;
+IconData? _customIcon;
 bool _helperIsOpen = false;
 List<Tuple3<Set<LogicalKeyboardKey>, Function(BuildContext context), String>>
     _newGlobal = [];
@@ -21,12 +21,12 @@ enum BasicShortCuts {
 
 void initShortCuts(
   Widget homePage, {
-  Set<Set<LogicalKeyboardKey>> keysToPress,
-  Set<Function(BuildContext context)> onKeysPressed,
-  Set<String> helpLabel,
-  Widget helpGlobal,
-  String helpTitle,
-  IconData helpIcon,
+  Set<Set<LogicalKeyboardKey>>? keysToPress,
+  Set<Function(BuildContext context)>? onKeysPressed,
+  Set<String>? helpLabel,
+  Widget? helpGlobal,
+  String? helpTitle,
+  IconData? helpIcon,
 }) async {
   if (keysToPress != null &&
       onKeysPressed != null &&
@@ -53,9 +53,9 @@ bool _isPressed(
 }
 
 class KeyBoardShortcut {
-  final Set<LogicalKeyboardKey> keysToPress;
-  final VoidCallback onKeysPressed;
-  final String helpLabel;
+  final Set<LogicalKeyboardKey>? keysToPress;
+  final VoidCallback? onKeysPressed;
+  final String? helpLabel;
 
   KeyBoardShortcut({
     this.keysToPress,
@@ -67,9 +67,9 @@ class KeyBoardShortcut {
 class KeyBoardShortcuts extends StatefulWidget {
   final Widget child;
 
-  final List<KeyBoardShortcut> shortcuts;
+  final List<KeyBoardShortcut>? shortcuts;
 
-  KeyBoardShortcuts({this.shortcuts, @required this.child, Key key})
+  KeyBoardShortcuts({this.shortcuts, required this.child, Key? key})
       : super(key: key);
 
   @override
@@ -77,11 +77,11 @@ class KeyBoardShortcuts extends StatefulWidget {
 }
 
 class _KeyBoardShortcuts extends State<KeyBoardShortcuts> {
-  FocusScopeNode focusScopeNode;
+  FocusScopeNode? focusScopeNode;
   ScrollController _controller = ScrollController();
   bool controllerIsReady = false;
   bool listening = false;
-  Key key;
+  late Key key;
   @override
   void initState() {
     _controller.addListener(() {
@@ -117,11 +117,11 @@ class _KeyBoardShortcuts extends State<KeyBoardShortcuts> {
     Set<LogicalKeyboardKey> keysPressed = RawKeyboard.instance.keysPressed;
     if (v.runtimeType == RawKeyDownEvent) {
       // when user type keysToPress
-      for (final action in widget.shortcuts) {
+      for (final action in widget.shortcuts!) {
         if (action.keysToPress != null &&
             action.onKeysPressed != null &&
-            _isPressed(keysPressed, action.keysToPress)) {
-          action.onKeysPressed();
+            _isPressed(keysPressed, action.keysToPress!)) {
+          action.onKeysPressed!();
           return;
         }
       }
@@ -131,8 +131,8 @@ class _KeyBoardShortcuts extends State<KeyBoardShortcuts> {
           {LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.keyH})) {
         List<Widget> activeHelp = [];
 
-        widget.shortcuts.forEach((element) {
-          Widget elementWidget = _helpWidget(element);
+        widget.shortcuts!.forEach((element) {
+          Widget? elementWidget = _helpWidget(element);
           if (elementWidget != null) activeHelp.add(elementWidget);
         }); // get all custom shortcuts
 
@@ -180,21 +180,21 @@ class _KeyBoardShortcuts extends State<KeyBoardShortcuts> {
   }
 }
 
-String _getKeysToPress(Set<LogicalKeyboardKey> keysToPress) {
+String _getKeysToPress(Set<LogicalKeyboardKey>? keysToPress) {
   String text = "";
   if (keysToPress != null) {
-    for (final i in keysToPress) text += i.debugName + " + ";
+    for (final i in keysToPress) text += i.debugName! + " + ";
     text = text.substring(0, text.lastIndexOf(" + "));
   }
   return text;
 }
 
-Widget _helpWidget(KeyBoardShortcut shortcut) {
+Widget? _helpWidget(KeyBoardShortcut shortcut) {
   String text = _getKeysToPress(shortcut.keysToPress);
   if (shortcut.helpLabel != null && text != "")
     return ListTile(
       leading: Icon(_customIcon ?? Icons.settings),
-      title: Text(shortcut.helpLabel),
+      title: Text(shortcut.helpLabel!),
       subtitle: Text(text),
     );
   return null;

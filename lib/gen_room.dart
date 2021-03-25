@@ -9,9 +9,9 @@ import 'dart:convert';
 
 class Room {
     Room({
-        @required this.vertices,
-        @required this.edges,
-        @required this.pews,
+        required this.vertices,
+        required this.edges,
+        required this.pews,
     });
 
     List<Vertex> vertices;
@@ -37,12 +37,12 @@ class Room {
 
 class Edge {
     Edge({
-        @required this.a,
-        @required this.b,
+        required this.a,
+        required this.b,
     });
 
-    int a;
-    int b;
+    int? a;
+    int? b;
 
     factory Edge.fromRawJson(String str) => Edge.fromJson(json.decode(str));
 
@@ -61,18 +61,18 @@ class Edge {
 
 class Pew {
     Pew({
-        @required this.fr,
-        @required this.fl,
-        @required this.br,
-        @required this.bl,
-        @required this.name,
+        required this.fr,
+        required this.fl,
+        required this.br,
+        required this.bl,
+        required this.name,
     });
 
-    int fr;
-    int fl;
-    int br;
-    int bl;
-    String name;
+    int? fr;
+    int? fl;
+    int? br;
+    int? bl;
+    String? name;
 
     factory Pew.fromRawJson(String str) => Pew.fromJson(json.decode(str));
 
@@ -97,8 +97,8 @@ class Pew {
 
 class Vertex {
     Vertex({
-        @required this.x,
-        @required this.y,
+        required this.x,
+        required this.y,
     });
 
     double x;
