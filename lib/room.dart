@@ -1,10 +1,8 @@
 // Copyright 2021 Forrest Hilton; licensed under GPL-3.0-or-later; See COPYING.txt
 import 'dart:core';
-import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:archive/archive.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,6 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'gen_room.dart';
 import 'keyboard_shortcuts.dart';
+import 'room_file.dart';
 
 class Action {
   Action(
@@ -33,14 +32,9 @@ class RoomEditor extends StatefulWidget {
 }
 
 class _RoomEditorState extends State<RoomEditor> {
-  Room room = Room.fromRawJson(
-      """ {"vertices":[{"x":0.5,"y":0.3},{"x":0.5,"y":0.2}],"edges":[{"a":0,"b":1}],"pews":[]} """);
+  late Room room;
+  late RoomFile roomFile;
   List<String> histrory = [];
-
-  late String path;
-  late File file;
-  double? aspectratio;
-
   List<int> selectedVertices = [];
 
   void editRoom(void Function() action) {
@@ -50,11 +44,27 @@ class _RoomEditorState extends State<RoomEditor> {
     });
   }
 
+  void onLoadOfAnotaitions() {
+    setState(() {
+      room = roomFile.room;
+    });
+  }
+
+  @override
+  _RoomEditorState() {
+    roomFile = RoomFile(setState, onLoadOfAnotaitions);
+    roomFile.create("./user_files/Example.zip");
+  }
+
   @override
   Widget build(BuildContext context) {
-    loadImage("./user_files/room.png");
-
     List<Action> ribbonActions = [
+      Action(
+        name: "Save",
+        description: "",
+        shortcut: {LogicalKeyboardKey.control, LogicalKeyboardKey.keyS},
+        function: roomFile.save,
+      ),
       Action(
         name: "Import",
         description: "Import your image or a zip file saving your edit",
@@ -62,29 +72,15 @@ class _RoomEditorState extends State<RoomEditor> {
         function: () {
           setState(() {
             // show a dialog to open a file
-            print("asdf");
             FilePicker.platform.pickFiles(type: FileType.any).then((value) {
               if (value == null) {
                 return;
               } else {
                 // presumably image
-
               }
-              this.path = value.paths[0]!;
+//              this.path = value.paths[0]!;
             });
           });
-          if (path.endsWith(".zip")) {
-            final bytes = File('test.zip').readAsBytesSync();
-            final archive = ZipDecoder().decodeBytes(bytes);
-            for (final file in archive) {
-              final filename = file.name;
-              assert(file.isFile); // Directory
-              final data = file.content as List<int>;
-              if (filename.endsWith(".json")) {
-                this.room = Room.fromRawJson(file.content.toString());
-              } else {}
-            }
-          } else {}
         },
       ),
       Action(
@@ -109,7 +105,6 @@ class _RoomEditorState extends State<RoomEditor> {
                   break;
                 }
               }
-              print(decrementBy);
               endIndex -= decrementBy;
               newEdgeIndices.add(endIndex);
             }
@@ -121,7 +116,6 @@ class _RoomEditorState extends State<RoomEditor> {
             for (final index in selectedVertices) {
               room.vertices.removeAt(index);
             }
-            print(room.toRawJson());
             selectedVertices = [];
           });
         },
@@ -228,20 +222,10 @@ class _RoomEditorState extends State<RoomEditor> {
             child: LayoutBuilder(builder: this._pageBody)));
   }
 
-  void loadImage(String imagePath) async {
-    if (aspectratio != null) return;
-    file = File(imagePath);
-    final decoded = await decodeImageFromList(file.readAsBytesSync());
-
-    this.setState(() {
-      aspectratio = decoded.height / decoded.width;
-    });
-  }
-
   // rendering generally
   Widget _pageBody(BuildContext cxt, BoxConstraints cnts) {
-    if (aspectratio == null) return Text('');
-    final image = Image.file(file,
+    if (!roomFile.isReady) return Text('');
+    final image = Image.file(roomFile.image,
         height: cnts.maxHeight,
         width: cnts.maxWidth,
         key: Key('Forrest Hilton 2020 Dec 27'));
@@ -251,16 +235,16 @@ class _RoomEditorState extends State<RoomEditor> {
     double leftPading;
     double bottomPading;
 
-    if (cnts.maxHeight > aspectratio! * cnts.maxWidth) {
+    if (cnts.maxHeight > roomFile.aspectratio * cnts.maxWidth) {
       // room on top
-      height = aspectratio! * cnts.maxWidth;
+      height = roomFile.aspectratio * cnts.maxWidth;
       width = cnts.maxWidth;
       bottomPading = (cnts.maxHeight - height) / 2;
       leftPading = 0;
     } else {
       //room on sides
       height = cnts.maxHeight;
-      width = cnts.maxHeight / aspectratio!;
+      width = cnts.maxHeight / roomFile.aspectratio;
       leftPading = (cnts.maxWidth - width) / 2;
       bottomPading = 0;
     }
