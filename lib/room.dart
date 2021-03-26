@@ -333,7 +333,7 @@ class _RoomEditorState extends State<RoomEditor> {
           ] +
           // the next line maps the edge data to a list of dots then combines
           // these lists only if there are edges.
-          (room.edges == []
+          (room.edges.isEmpty 
               ? []
               : (room.edges.map((e) {
                   return edge(e);
