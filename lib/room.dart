@@ -3,7 +3,6 @@ import 'dart:core';
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -53,7 +52,7 @@ class _RoomEditorState extends State<RoomEditor> {
   @override
   _RoomEditorState() {
     roomFile = RoomFile(setState, onLoadOfAnotaitions);
-    roomFile.create("./user_files/Example.zip");
+    roomFile.promptUserForPathAndCreate();
   }
 
   @override
@@ -70,17 +69,7 @@ class _RoomEditorState extends State<RoomEditor> {
         description: "Import your image or a zip file saving your edit",
         shortcut: {LogicalKeyboardKey.control, LogicalKeyboardKey.keyO},
         function: () {
-          setState(() {
-            // show a dialog to open a file
-            FilePicker.platform.pickFiles(type: FileType.any).then((value) {
-              if (value == null) {
-                return;
-              } else {
-                // presumably image
-              }
-//              this.path = value.paths[0]!;
-            });
-          });
+          roomFile.promptUserForPathAndCreate();
         },
       ),
       Action(
@@ -333,7 +322,7 @@ class _RoomEditorState extends State<RoomEditor> {
           ] +
           // the next line maps the edge data to a list of dots then combines
           // these lists only if there are edges.
-          (room.edges.isEmpty 
+          (room.edges.isEmpty
               ? []
               : (room.edges.map((e) {
                   return edge(e);

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:archive/archive_io.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:path_provider/path_provider.dart';
+
 import 'gen_room.dart';
 
 class RoomFile {
@@ -15,11 +16,18 @@ class RoomFile {
   final VoidCallback onLoadOfAnotaitions;
 
   bool isReady = false;
+  bool isWaitingForInitialisation = true;
 
   RoomFile(this.parentSetState, this.onLoadOfAnotaitions);
 
-  void create(String selectedPath) async {
+  void promptUserForPathAndCreate() async {
+    late final selectedPath = "./user_files/out.zip";
+    // TODO: https://pub.dev/packages/file_picker_cross/versions
+    // waiting on them to implement nullsafety
+
     if (selectedPath.endsWith(".zip")) {
+      // TODO: replace temp files with in memory file system
+      // https://pub.dev/packages/file
       path = selectedPath;
       Directory tempDir = await getTemporaryDirectory();
       String tempPath = tempDir.path;
@@ -30,7 +38,7 @@ class RoomFile {
         final filename = archivedFile.name;
         assert(archivedFile.isFile);
         final data = archivedFile.content as List<int>;
-        final file = File(tempPath +"/" + filename)
+        final file = File(tempPath + "/" + filename)
           ..createSync(recursive: true)
           ..writeAsBytesSync(data);
         if (filename.endsWith(".json")) {
@@ -42,9 +50,8 @@ class RoomFile {
     } else {
       // assuming its an image path
       _loadImage(File(selectedPath));
-      this.room = Room.fromRawJson(
-          """ {"vertices":[{"x":0.5,"y":0.3},{"x":0.5,"y":0.2}],
-      "edges":[{"a":0,"b":1}],"pews":[]} """);
+      this.room =
+          Room.fromRawJson(""" {"vertices":[], "edges":[],"pews":[]} """);
       path = "./user_files/out.zip";
     }
     onLoadOfAnotaitions();
