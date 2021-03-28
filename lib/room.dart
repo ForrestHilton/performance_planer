@@ -7,23 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'gen_room.dart';
+import 'room_graph.dart';
 import 'keyboard_shortcuts.dart';
 import 'room_file.dart';
-
-class Action {
-  Action(
-      {this.name,
-      required this.description,
-      this.nullCondition,
-      required this.function,
-      required this.shortcut});
-  final String? name;
-  final String description;
-  final bool Function()? nullCondition;
-  final VoidCallback function;
-  final Set<LogicalKeyboardKey> shortcut;
-}
 
 class RoomEditor extends StatefulWidget {
   @override
@@ -57,36 +43,34 @@ class _RoomEditorState extends State<RoomEditor> {
 
   @override
   Widget build(BuildContext context) {
-    List<Action> ribbonActions = [
-      Action(
+    List<ActionDescription> ribbonActions = [
+      ActionDescription(
         name: "Save",
-        description: "",
-        shortcut: {LogicalKeyboardKey.control, LogicalKeyboardKey.keyS},
+        helpDescription: "",
+        keyBoardShortcut: {LogicalKeyboardKey.control, LogicalKeyboardKey.keyS},
         function: roomFile.save,
       ),
-      Action(
+      ActionDescription(
         name: "Import",
-        description:
+        helpDescription:
             "Import your image to annotate or a zip file save of an existing annotation",
-        shortcut: {LogicalKeyboardKey.control, LogicalKeyboardKey.keyO},
-        function: () {
-          roomFile.promptUserForPathAndCreate();
-        },
+        keyBoardShortcut: {LogicalKeyboardKey.control, LogicalKeyboardKey.keyO},
+        function: roomFile.promptUserForPathAndCreate,
       ),
-      Action(
+      ActionDescription(
           name: "Unselect",
-          description: "clear the sellection",
-          shortcut: {LogicalKeyboardKey.escape},
+          helpDescription: "clear the sellection",
+          keyBoardShortcut: {LogicalKeyboardKey.escape},
           nullCondition: () => selectedVertices == [],
           function: () {
             setState(() {
                 selectedVertices = [];
             });
           }),
-      Action(
+      ActionDescription(
         name: "Remove",
-        description: "Remove all selected vertices and there nodes",
-        shortcut: {LogicalKeyboardKey.backspace},
+        helpDescription: "Remove all selected vertices and there nodes",
+        keyBoardShortcut: {LogicalKeyboardKey.backspace},
         function: () {
           selectedVertices.sort((a, b) => b.compareTo(a));
           List<Edge> newEdges = [];
@@ -120,10 +104,10 @@ class _RoomEditorState extends State<RoomEditor> {
           });
         },
       ),
-      Action(
+      ActionDescription(
         name: "Connect",
-        description: "Connect two edges",
-        shortcut: {LogicalKeyboardKey.space, LogicalKeyboardKey.control},
+        helpDescription: "Connect two edges",
+        keyBoardShortcut: {LogicalKeyboardKey.space, LogicalKeyboardKey.control},
         nullCondition: () => selectedVertices.length != 2,
         function: () {
           editRoom(() {
@@ -134,10 +118,10 @@ class _RoomEditorState extends State<RoomEditor> {
           });
         },
       ),
-      Action(
+      ActionDescription(
           name: "Form Pew",
-          description: "",
-          shortcut: {LogicalKeyboardKey.control, LogicalKeyboardKey.keyP},
+          helpDescription: "",
+          keyBoardShortcut: {LogicalKeyboardKey.control, LogicalKeyboardKey.keyP},
           nullCondition: () => selectedVertices.length != 4,
           function: () {
             // TODO: make corners appropriate order
@@ -158,9 +142,9 @@ class _RoomEditorState extends State<RoomEditor> {
                   br: selectedVertices[2]));
             });
           }),
-      Action(
-        description: "Move all selected vertices",
-        shortcut: {LogicalKeyboardKey.arrowUp},
+      ActionDescription(
+        helpDescription: "Move all selected vertices",
+        keyBoardShortcut: {LogicalKeyboardKey.arrowUp},
         nullCondition: () => selectedVertices == [],
         function: () {
           editRoom(() {
@@ -171,9 +155,9 @@ class _RoomEditorState extends State<RoomEditor> {
           });
         },
       ),
-      Action(
-        description: "Move all selected vertices",
-        shortcut: {LogicalKeyboardKey.arrowDown},
+      ActionDescription(
+        helpDescription: "Move all selected vertices",
+        keyBoardShortcut: {LogicalKeyboardKey.arrowDown},
         nullCondition: () => selectedVertices == [],
         function: () {
           editRoom(() {
@@ -183,9 +167,9 @@ class _RoomEditorState extends State<RoomEditor> {
           });
         },
       ),
-      Action(
-        description: "Move all selected vertices",
-        shortcut: {LogicalKeyboardKey.arrowRight},
+      ActionDescription(
+        helpDescription: "Move all selected vertices",
+        keyBoardShortcut: {LogicalKeyboardKey.arrowRight},
         nullCondition: () => selectedVertices == [],
         function: () {
           editRoom(() {
@@ -195,9 +179,9 @@ class _RoomEditorState extends State<RoomEditor> {
           });
         },
       ),
-      Action(
-        description: "Move all selected vertices",
-        shortcut: {LogicalKeyboardKey.arrowLeft},
+      ActionDescription(
+        helpDescription: "Move all selected vertices",
+        keyBoardShortcut: {LogicalKeyboardKey.arrowLeft},
         nullCondition: () => selectedVertices == [],
         function: () {
           editRoom(() {
@@ -207,10 +191,10 @@ class _RoomEditorState extends State<RoomEditor> {
           });
         },
       ),
-      Action(
+      ActionDescription(
         name: "Undo",
-        description: "Undo the last change",
-        shortcut: {LogicalKeyboardKey.keyZ, LogicalKeyboardKey.control},
+        helpDescription: "Undo the last change",
+        keyBoardShortcut: {LogicalKeyboardKey.keyZ, LogicalKeyboardKey.control},
         function: () {
           setState(() {
             this.room = Room.fromRawJson(histrory.last);
@@ -220,29 +204,14 @@ class _RoomEditorState extends State<RoomEditor> {
       ),
     ];
 
-    final shortcuts = ribbonActions
-        .map((actionDescription) => KeyBoardShortcut(
-            onKeysPressed: actionDescription.function,
-            keysToPress: actionDescription.shortcut,
-            helpLabel: actionDescription.description))
-        .toList();
-    ribbonActions.removeWhere((description) => description.name == null);
-    final buttons = ribbonActions
-        .map((description) => ElevatedButton(
-            onPressed: (description.nullCondition != null &&
-                    description.nullCondition!())
-                ? null
-                : description.function,
-            child: Text(description.name!)))
-        .toList();
-
+   
     return Scaffold(
         appBar: AppBar(
             title: Text("Room Editor"),
             backgroundColor: Colors.green,
-            actions: buttons),
+            actions: buttons(ribbonActions)),
         body: KeyBoardShortcuts(
-            shortcuts: shortcuts,
+            shortcuts: ribbonActions,
             child: LayoutBuilder(builder: this._pageBody)));
   }
 
@@ -405,7 +374,7 @@ class _RoomEditorState extends State<RoomEditor> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                            "\"${pew.name}\" \nCapacity:${pew.capacity.toStringAsFixed(0)}",
+                            "\"${pew.name}\"\nCapacity:${pew.capacity.toStringAsFixed(0)}",
                             style: style),
                         Row(
                           children: [

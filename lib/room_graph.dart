@@ -1,6 +1,6 @@
 // Copyright 2021 Forrest Hilton; licensed under GPL-3.0-or-later; See COPYING.txt
-// This file generated 08:46:37 PM 29 11 (November) 2020
-// using https://app.quicktype.io/ , the room.json, and the options, encoder+decoder and require all.
+// This file initially generated 08:46:37 PM 29 11 (November) 2020
+// using https://app.quicktype.io/, the room.json, and the options, encoder+decoder and require all.
 // manually edited since
 
 import 'dart:convert';

@@ -1,7 +1,6 @@
 // Copyright 2020 Antoine Marcel https://github.com/AntoineMarcel/keyboard_shortcuts
 // His version is available under a MIT License.
 // Copyright 2021 Forrest Hilton; licensed under GPL-3.0-or-later; See COPYING.txt
-library keyboard_shortcuts;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -9,24 +8,42 @@ import 'package:flutter/services.dart';
 import 'package:tuple/tuple.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
+class ActionDescription {
+  ActionDescription(
+      {this.name,
+      required this.helpDescription,
+      this.nullCondition,
+      required this.function,
+      this.keyBoardShortcut});
+  final String? name;
+  final String? helpDescription;
+  final bool Function()? nullCondition;
+  final VoidCallback function;
+  final Set<LogicalKeyboardKey>? keyBoardShortcut;
+}
+
+List<Widget> buttons(List<ActionDescription> ribbonActions) {
+  return ribbonActions.where((description) => description.name != null)
+  .map((description) => ElevatedButton(
+      onPressed: (description.nullCondition != null &&
+        description.nullCondition!())
+      ? null
+      : description.function,
+      child: Text(description.name!)))
+  .toList();
+}
+
 String? _customTitle;
 IconData? _customIcon;
 bool _helperIsOpen = false;
 List<Tuple3<Set<LogicalKeyboardKey>, Function(BuildContext context), String>>
     _newGlobal = [];
 
-enum BasicShortCuts {
-  creation,
-  previousPage,
-  nextPage,
-  save,
-}
-
 void initShortCuts(
   Widget homePage, {
-  Set<Set<LogicalKeyboardKey>>? keysToPress,
-  Set<Function(BuildContext context)>? onKeysPressed,
-  Set<String>? helpLabel,
+  List<Set<LogicalKeyboardKey>>? keysToPress,
+  List<Function(BuildContext context)>? onKeysPressed,
+  List<String>? helpLabel,
   Widget? helpGlobal,
   String? helpTitle,
   IconData? helpIcon,
@@ -55,24 +72,13 @@ bool _isPressed(
       keysPressed.length == keysToPress.length;
 }
 
-class KeyBoardShortcut {
-  final Set<LogicalKeyboardKey>? keysToPress;
-  final VoidCallback? onKeysPressed;
-  final String? helpLabel;
-
-  KeyBoardShortcut({
-    this.keysToPress,
-    this.onKeysPressed,
-    this.helpLabel,
-  });
-}
 
 class KeyBoardShortcuts extends StatefulWidget {
   final Widget child;
 
-  final List<KeyBoardShortcut>? shortcuts;
+  final List<ActionDescription> shortcuts;
 
-  KeyBoardShortcuts({this.shortcuts, required this.child, Key? key})
+  KeyBoardShortcuts({required this.shortcuts, required this.child, Key? key})
       : super(key: key);
 
   @override
@@ -120,11 +126,10 @@ class _KeyBoardShortcuts extends State<KeyBoardShortcuts> {
     Set<LogicalKeyboardKey> keysPressed = RawKeyboard.instance.keysPressed;
     if (v.runtimeType == RawKeyDownEvent) {
       // when user type keysToPress
-      for (final action in widget.shortcuts!) {
-        if (action.keysToPress != null &&
-            action.onKeysPressed != null &&
-            _isPressed(keysPressed, action.keysToPress!)) {
-          action.onKeysPressed!();
+      for (final action in widget.shortcuts) {
+        if (action.keyBoardShortcut != null &&
+            _isPressed(keysPressed, action.keyBoardShortcut!)) {
+          action.function();
           return;
         }
       }
@@ -134,7 +139,7 @@ class _KeyBoardShortcuts extends State<KeyBoardShortcuts> {
           {LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.keyH})) {
         List<Widget> activeHelp = [];
 
-        widget.shortcuts!.forEach((element) {
+        widget.shortcuts.forEach((element) {
           Widget? elementWidget = _helpWidget(element);
           if (elementWidget != null) activeHelp.add(elementWidget);
         }); // get all custom shortcuts
@@ -192,28 +197,15 @@ String _getKeysToPress(Set<LogicalKeyboardKey>? keysToPress) {
   return text;
 }
 
-Widget? _helpWidget(KeyBoardShortcut shortcut) {
-  String text = _getKeysToPress(shortcut.keysToPress);
-  if (shortcut.helpLabel != null && text != "")
+Widget? _helpWidget(ActionDescription shortcut) {
+  String text = _getKeysToPress(shortcut.keyBoardShortcut);
+  // TODO: name
+  if (shortcut.helpDescription != null && text != "")
     return ListTile(
       leading: Icon(_customIcon ?? Icons.settings),
-      title: Text(shortcut.helpLabel!),
+      title: Text(shortcut.helpDescription!),
       subtitle: Text(text),
     );
   return null;
 }
 
-Set<LogicalKeyboardKey> shortCut(BasicShortCuts basicShortCuts) {
-  switch (basicShortCuts) {
-    case BasicShortCuts.creation:
-      return {LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.keyN};
-    case BasicShortCuts.previousPage:
-      return {LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.arrowLeft};
-    case BasicShortCuts.nextPage:
-      return {LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.arrowRight};
-    case BasicShortCuts.save:
-      return {LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.keyS};
-    default:
-      return {};
-  }
-}
