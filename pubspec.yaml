@@ -23,6 +23,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+    fonts:
+      - asset: fonts/RobotoMono-Regular.ttf
+      - asset: fonts/RobotoMono-Bold.ttf
+        weight: 700
 
   visibility_detector:  0.2.0-nullsafety.1
   tuple:

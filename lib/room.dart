@@ -66,12 +66,23 @@ class _RoomEditorState extends State<RoomEditor> {
       ),
       Action(
         name: "Import",
-        description: "Import your image or a zip file saving your edit",
+        description:
+            "Import your image to annotate or a zip file save of an existing annotation",
         shortcut: {LogicalKeyboardKey.control, LogicalKeyboardKey.keyO},
         function: () {
           roomFile.promptUserForPathAndCreate();
         },
       ),
+      Action(
+          name: "Unselect",
+          description: "clear the sellection",
+          shortcut: {LogicalKeyboardKey.escape},
+          nullCondition: () => selectedVertices == [],
+          function: () {
+            setState(() {
+                selectedVertices = [];
+            });
+          }),
       Action(
         name: "Remove",
         description: "Remove all selected vertices and there nodes",
@@ -117,12 +128,36 @@ class _RoomEditorState extends State<RoomEditor> {
         function: () {
           editRoom(() {
             if (selectedVertices.length == 2) {
-              room.edges
-                  .add(Edge(a: selectedVertices[0], b: selectedVertices[1]));
+              room.addEdge(
+                  Edge(a: selectedVertices[0], b: selectedVertices[1]));
             }
           });
         },
       ),
+      Action(
+          name: "Form Pew",
+          description: "",
+          shortcut: {LogicalKeyboardKey.control, LogicalKeyboardKey.keyP},
+          nullCondition: () => selectedVertices.length != 4,
+          function: () {
+            // TODO: make corners appropriate order
+            setState(() {
+              for (int indexInSelection = 0;
+                  indexInSelection < 4;
+                  indexInSelection++) {
+                room.addEdge(Edge(
+                    a: selectedVertices[indexInSelection],
+                    b: selectedVertices[(indexInSelection + 1) % 4]));
+              }
+              room.pews.add(Pew(
+                  name: 'Test',
+                  capacity: 200,
+                  fl: selectedVertices[0],
+                  fr: selectedVertices[1],
+                  bl: selectedVertices[3],
+                  br: selectedVertices[2]));
+            });
+          }),
       Action(
         description: "Move all selected vertices",
         shortcut: {LogicalKeyboardKey.arrowUp},
@@ -238,8 +273,8 @@ class _RoomEditorState extends State<RoomEditor> {
       bottomPading = 0;
     }
 
-    Vertex offsetToVertex(Offset position) {
-      return Vertex(
+    Point offsetToVertex(Offset position) {
+      return Point(
         x: (position.dx - leftPading) / width,
         y: 1 - (position.dy - bottomPading) / height,
       );
@@ -294,9 +329,9 @@ class _RoomEditorState extends State<RoomEditor> {
       final stepx = dx / numberOfDots;
       final stepy = dy / numberOfDots;
       //hear a Vertex represents the position of a dot representing part of an edge
-      final List<Vertex> positions = List.generate(numberOfDots, (j) {
+      final List<Point> positions = List.generate(numberOfDots, (j) {
         int i = j + 1;
-        return Vertex(x: b.x + stepx * i, y: b.y + stepy * i);
+        return Point(x: b.x + stepx * i, y: b.y + stepy * i);
       });
       return positions.map((r) {
         return Positioned(
@@ -346,6 +381,54 @@ class _RoomEditorState extends State<RoomEditor> {
                     child: selectedVertices.contains(i)
                         ? highlightedVertex
                         : vertex));
+          }).toList() +
+          room.pews.map((pew) {
+            Point center = room.center(pew);
+            Line frontRow = room.line(Edge(a: pew.fl, b: pew.fr));
+            double mPerpendicular = -1 / frontRow.m;
+            bool faceingLeft =
+                (room.vertices[pew.fl].x + room.vertices[pew.fr].x) / 2 <
+                    center.x;
+            final style =
+              TextStyle(fontWeight: FontWeight.bold, color: Colors.red,);
+
+            return Positioned(
+              left: center.x * width + leftPading - 100 / 2,
+              bottom: center.y * height + bottomPading -70/2,
+              child: SizedBox(
+                child: SizedBox(
+                  child: Container(
+                    color: Colors.white.withOpacity(.6),
+                    width: 100,
+                    height: 70,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                            "\"${pew.name}\" \nCapacity:${pew.capacity.toStringAsFixed(0)}",
+                            style: style),
+                        Row(
+                          children: [
+                          Text(
+                            "Facing:",
+                            style: style,
+                          ),
+                          Transform.rotate(
+                            angle: -atan(mPerpendicular) +(faceingLeft ? pi : 0) ,
+                            child: Icon(
+                              Icons.arrow_forward,
+                              color: Colors.red,
+                              size: 30.0,
+                            ),
+                          )
+                        ],
+                      ),
+                    ],
+            ),
+                  ),
+                ),
+              ),
+            );
           }).toList(),
     );
     return ret;

@@ -5,12 +5,12 @@ import 'room.dart';
 
 void main() {
   runApp(MaterialApp(
-    initialRoute: '/',
-    routes: {
-      '/': (context) => HomeRoute(),
-      '/room_editor': (context) => RoomEditor(),
-    },
-  ));
+      initialRoute: '/',
+      routes: {
+        '/': (context) => HomeRoute(),
+        '/room_editor': (context) => RoomEditor(),
+      },
+    ));
 }
 
 class HomeRoute extends StatelessWidget {
