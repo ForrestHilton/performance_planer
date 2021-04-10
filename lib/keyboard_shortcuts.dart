@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:tuple/tuple.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
+/// describes an action presented to a user generally in a ribbon of buttons in the top bar.
 class ActionDescription {
   ActionDescription(
       {this.name,
@@ -22,6 +23,7 @@ class ActionDescription {
   final Set<LogicalKeyboardKey>? keyBoardShortcut;
 }
 
+/// buttons of for all actions that have names
 List<Widget> buttons(List<ActionDescription> ribbonActions) {
   return ribbonActions.where((description) => description.name != null)
   .map((description) => ElevatedButton(

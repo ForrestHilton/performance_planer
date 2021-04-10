@@ -1,0 +1,8 @@
+[
+    {"name":"Tenor Base", "size":40,"underlap":true,"overlap":true},
+    {"name":"Soprano Alto", "size":50,"underlap":true,"overlap":true},
+    {"name":"Chamber", "size":40,"underlap":false,"overlap":true},
+    {"name":"Junior", "size":70,"underlap":true,"overlap":true},
+    {"name":"Senior", "size":60,"underlap":true,"overlap":true},
+    {"name":"All", "size":220,"underlap":false,"overlap":true}
+]

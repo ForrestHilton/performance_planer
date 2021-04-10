@@ -64,15 +64,20 @@ class _RoomEditorState extends State<RoomEditor> {
           nullCondition: () => selectedVertices == [],
           function: () {
             setState(() {
-                selectedVertices = [];
+              selectedVertices = [];
             });
           }),
       ActionDescription(
         name: "Remove",
-        helpDescription: "Remove all selected vertices and there nodes",
+        helpDescription:
+            "Remove all selected vertices and there edges and pews",
         keyBoardShortcut: {LogicalKeyboardKey.backspace},
         function: () {
           selectedVertices.sort((a, b) => b.compareTo(a));
+          for (int index in selectedVertices) {
+            room.pews.removeWhere(
+                (pew) => [pew.bl, pew.br, pew.fr, pew.fl].contains(index));
+          }
           List<Edge> newEdges = [];
           OUTER:
           for (final edge in room.edges) {
@@ -107,7 +112,10 @@ class _RoomEditorState extends State<RoomEditor> {
       ActionDescription(
         name: "Connect",
         helpDescription: "Connect two edges",
-        keyBoardShortcut: {LogicalKeyboardKey.space, LogicalKeyboardKey.control},
+        keyBoardShortcut: {
+          LogicalKeyboardKey.space,
+          LogicalKeyboardKey.control
+        },
         nullCondition: () => selectedVertices.length != 2,
         function: () {
           editRoom(() {
@@ -121,7 +129,10 @@ class _RoomEditorState extends State<RoomEditor> {
       ActionDescription(
           name: "Form Pew",
           helpDescription: "",
-          keyBoardShortcut: {LogicalKeyboardKey.control, LogicalKeyboardKey.keyP},
+          keyBoardShortcut: {
+            LogicalKeyboardKey.control,
+            LogicalKeyboardKey.keyP
+          },
           nullCondition: () => selectedVertices.length != 4,
           function: () {
             // TODO: make corners appropriate order
@@ -135,7 +146,8 @@ class _RoomEditorState extends State<RoomEditor> {
               }
               room.pews.add(Pew(
                   name: 'Test',
-                  capacity: 200,
+                  width: 20,
+                  rows: 12,
                   fl: selectedVertices[0],
                   fr: selectedVertices[1],
                   bl: selectedVertices[3],
@@ -204,7 +216,6 @@ class _RoomEditorState extends State<RoomEditor> {
       ),
     ];
 
-   
     return Scaffold(
         appBar: AppBar(
             title: Text("Room Editor"),
@@ -358,42 +369,45 @@ class _RoomEditorState extends State<RoomEditor> {
             bool faceingLeft =
                 (room.vertices[pew.fl].x + room.vertices[pew.fr].x) / 2 <
                     center.x;
-            final style =
-              TextStyle(fontWeight: FontWeight.bold, color: Colors.red,);
+            final style = TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.red,
+            );
 
             return Positioned(
               left: center.x * width + leftPading - 100 / 2,
-              bottom: center.y * height + bottomPading -70/2,
+              bottom: center.y * height + bottomPading - 81 / 2,
               child: SizedBox(
                 child: SizedBox(
                   child: Container(
                     color: Colors.white.withOpacity(.6),
                     width: 100,
-                    height: 70,
+                    height: 81,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                            "\"${pew.name}\"\nCapacity:${pew.capacity.toStringAsFixed(0)}",
-                            style: style),
+                        Text("""\"${pew.name}\"
+Width:${pew.width.toStringAsFixed(0)} ft
+Rows:${pew.rows.toStringAsFixed(0)} """, style: style),
                         Row(
                           children: [
-                          Text(
-                            "Facing:",
-                            style: style,
-                          ),
-                          Transform.rotate(
-                            angle: -atan(mPerpendicular) +(faceingLeft ? pi : 0) ,
-                            child: Icon(
-                              Icons.arrow_forward,
-                              color: Colors.red,
-                              size: 30.0,
+                            Text(
+                              "Facing:",
+                              style: style,
                             ),
-                          )
-                        ],
-                      ),
-                    ],
-            ),
+                            Transform.rotate(
+                              angle: -atan(mPerpendicular) +
+                                  (faceingLeft ? pi : 0),
+                              child: Icon(
+                                Icons.arrow_forward,
+                                color: Colors.red,
+                                size: 18.0,
+                              ),
+                            )
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

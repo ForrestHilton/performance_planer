@@ -1,7 +1,6 @@
 // Copyright 2021 Forrest Hilton; licensed under GPL-3.0-or-later; See COPYING.txt
 // This file initially generated 08:46:37 PM 29 11 (November) 2020
-// using https://app.quicktype.io/, the room.json, and the options, encoder+decoder and require all.
-// manually edited since
+// using https://app.quicktype.io/, room.json, and encoder+decoder and require all.
 
 import 'dart:convert';
 
@@ -93,6 +92,7 @@ class Edge {
       };
 }
 
+/// An object containing the vertex indices of the corners of a pew among other things
 class Pew {
   Pew({
     required this.fr,
@@ -100,15 +100,18 @@ class Pew {
     required this.br,
     required this.bl,
     required this.name,
-    required this.capacity,
+    required this.rows,
+    required this.width,
   });
-
+  
   int fr;
   int fl;
   int br;
   int bl;
   String name;
-  int capacity;
+  int rows;
+  /// feet
+  double width;
 
   factory Pew.fromRawJson(String str) => Pew.fromJson(json.decode(str));
 
@@ -120,7 +123,8 @@ class Pew {
         br: json["br"],
         bl: json["bl"],
         name: json["name"],
-        capacity: json["capacity"],
+        rows: json["rows"],
+        width: json["width"],
       );
 
   Map<String, dynamic> toJson() => {
@@ -129,7 +133,8 @@ class Pew {
         "br": br,
         "bl": bl,
         "name": name,
-        "capacity": capacity,
+        "rows": rows,
+        "width": width
       };
 }
 
