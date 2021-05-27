@@ -299,26 +299,26 @@ class _RoomEditorState extends State<RoomEditor> {
       ),
     );
 
-    List<Positioned> edge(Edge info) {
+    Positioned edge(Edge info) {
       final a = room.vertices[info.a];
       final b = room.vertices[info.b];
-      final dx = a.x - b.x;
-      final dy = a.y - b.y;
+      final dx = width * (a.x - b.x);
+      final dy = height * (a.y - b.y);
+      final r = room.center([a, b]); // midpoint
       final distance = sqrt(dx * dx + dy * dy);
-      final numberOfDots = (distance * 1000).ceil();
-      final stepx = dx / numberOfDots;
-      final stepy = dy / numberOfDots;
-      //hear a Vertex represents the position of a dot representing part of an edge
-      final List<Point> positions = List.generate(numberOfDots, (j) {
-        int i = j + 1;
-        return Point(x: b.x + stepx * i, y: b.y + stepy * i);
-      });
-      return positions.map((r) {
-        return Positioned(
-            bottom: r.y * height + bottomPading - dashSizeInPixels / 2,
-            left: r.x * width + leftPading - dashSizeInPixels / 2,
-            child: dash);
-      }).toList();
+      print("$dx,$dy");
+      final line = Transform.rotate(
+        origin: Offset.zero,
+        angle: room.angle(a, b),
+        child: Container(
+            width: distance, color: Colors.green, height: dashSizeInPixels),
+      );
+      return Positioned(
+          top: height * max(a.y, b.y),
+          bottom: height * min(a.y, b.y),
+          left: width * max(a.x, b.x),
+          right: width * min(a.x, b.x),
+          child: line);
     }
 
     final ret = Stack(
@@ -337,11 +337,7 @@ class _RoomEditorState extends State<RoomEditor> {
           ] +
           // the next line maps the edge data to a list of dots then combines
           // these lists only if there are edges.
-          (room.edges.isEmpty
-              ? []
-              : (room.edges.map((e) {
-                  return edge(e);
-                }).reduce((a, b) => a + b))) +
+          room.edges.map(edge).toList() +
           room.vertices.map((r) {
             final i = room.vertices.indexOf(r);
             //TODO Dragable
@@ -363,12 +359,11 @@ class _RoomEditorState extends State<RoomEditor> {
                         : vertex));
           }).toList() +
           room.pews.map((pew) {
-            Point center = room.center(pew);
-            Line frontRow = room.line(Edge(a: pew.fl, b: pew.fr));
-            double mPerpendicular = -1 / frontRow.m;
-            bool faceingLeft =
-                (room.vertices[pew.fl].x + room.vertices[pew.fr].x) / 2 <
-                    center.x;
+            Point center = room.center([pew.bl, pew.fl, pew.br, pew.fr]
+                .map((i) => room.vertices[i])
+                .toList());
+            Point frontOfPew =
+                room.center([room.vertices[pew.fr], room.vertices[pew.fr]]);
             final style = TextStyle(
               fontWeight: FontWeight.bold,
               color: Colors.red,
@@ -396,8 +391,7 @@ Rows:${pew.rows.toStringAsFixed(0)} """, style: style),
                               style: style,
                             ),
                             Transform.rotate(
-                              angle: -atan(mPerpendicular) +
-                                  (faceingLeft ? pi : 0),
+                              angle: room.angle(center, frontOfPew),
                               child: Icon(
                                 Icons.arrow_forward,
                                 color: Colors.red,

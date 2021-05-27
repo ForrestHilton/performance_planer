@@ -28,6 +28,7 @@ dependencies:
   tuple:
   archive: 
   path_provider:
+  provider: ^5.0.0
 
 
 dev_dependencies:

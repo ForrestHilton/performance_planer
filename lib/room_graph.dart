@@ -2,6 +2,7 @@
 // This file initially generated 08:46:37 PM 29 11 (November) 2020
 // using https://app.quicktype.io/, room.json, and encoder+decoder and require all.
 
+import 'dart:math';
 import 'dart:convert';
 
 class Room {
@@ -32,16 +33,14 @@ class Room {
         "pews": List<dynamic>.from(pews.map((x) => x.toJson())),
       };
 
-  /// takes the average of the positions of the corners
-  Point center(Pew pew) {
-    List<double> ret = [];
-    for (final direction in [(point) => point.x, (point) => point.y]) {
-      ret.add([pew.bl, pew.fl, pew.br, pew.fr]
-              .map((vertexIndex) => direction(vertices[vertexIndex]))
-              .reduce((a, b) => a + b) /
-          4);
+  /// average position of listed Points
+  Point center(List<Point> list) {
+    Point ret = Point(x: 0, y: 0);
+    for (Point p in list) {
+      ret.x += p.x;
+      ret.y += p.y;
     }
-    return Point(x: ret[0], y: ret[1]);
+    return Point(x: ret.x / list.length, y: ret.y / list.length);
   }
 
   bool hasEdge(Edge edge) {
@@ -53,12 +52,22 @@ class Room {
     if (!hasEdge(edge)) edges.add(edge);
   }
 
-  Line line(Edge edge) {
-    final a = vertices[edge.a];
-    final b = vertices[edge.b];
+  Line line(Point a, Point b) {
     final m = (b.y - a.y) / (b.x - a.x);
     final _b = a.y - a.x * m;
     return Line(m, _b);
+  }
+
+  /// the angle in CW radians from +x to the lane from a to b
+  double angle(Point a, Point b) {
+    bool faceingLeft = b.x < a.x;
+    var ret = atan(line(a, b).m) + (faceingLeft ? pi : 0);
+    ret = -ret;
+    if (ret < 0) {
+      ret += 2 * pi;
+    }
+
+    return ret;
   }
 }
 
@@ -103,13 +112,14 @@ class Pew {
     required this.rows,
     required this.width,
   });
-  
+
   int fr;
   int fl;
   int br;
   int bl;
   String name;
   int rows;
+
   /// feet
   double width;
 
