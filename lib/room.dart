@@ -104,7 +104,7 @@ class EditingRoomDisplay extends StatelessWidget {
             width: distance, color: Colors.green, height: dashSizeInPixels),
       );
       return Positioned(
-          bottom: height * r.y, left: width * r.x - distance / 2, child: line);
+        bottom: height * r.y - dashSizeInPixels/2, left: width * r.x - distance / 2, child: line);
     }
 
     final ret = Stack(
