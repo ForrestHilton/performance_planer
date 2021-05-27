@@ -17,62 +17,49 @@ import 'room_file.dart';
 class Editor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Room Editor"),
-        backgroundColor: Colors.green,
-        actions: buttons(context.read<RoomEditorState>().ribbonActions())),
-      body: KeyBoardShortcuts(
-        shortcuts: context.read<RoomEditorState>().ribbonActions(),
-        child: LayoutBuilder(builder: (context,cnts) {
-            final roomFile = context.read<RoomEditorState>().roomFile;
-            
-            if (!roomFile.isReady) return Text('');
-            
-            double height;
-            double width;
-            double leftPading;
-            double bottomPading;
-            
-            if (cnts.maxHeight > roomFile.aspectratio * cnts.maxWidth) {
-              // room on top
-              height = roomFile.aspectratio * cnts.maxWidth;
-              width = cnts.maxWidth;
-              bottomPading = (cnts.maxHeight - height) / 2;
-              leftPading = 0;
-            } else {
-              //room on sides
-              height = cnts.maxHeight;
-              width = cnts.maxHeight / roomFile.aspectratio;
-              leftPading = (cnts.maxWidth - width) / 2;
-              bottomPading = 0;
-          }
+        appBar: AppBar(
+            title: Text("Room Editor"),
+            backgroundColor: Colors.green,
+            actions: buttons(context.read<RoomEditorState>().ribbonActions())),
+        body: KeyBoardShortcuts(
+            shortcuts: context.read<RoomEditorState>().ribbonActions(),
+            child: LayoutBuilder(builder: (context, cnts) {
+              final roomFile = context.watch<RoomEditorState>().roomFile;
 
-          return Center(child: Container(child: EditingRoomDisplay(width,height),width: width,height: height));
-        })
-    ));
+              if (!roomFile.isReady) return Text('');
+
+              double height;
+              double width;
+
+              if (cnts.maxHeight > roomFile.aspectratio * cnts.maxWidth) {
+                // room on top
+                height = roomFile.aspectratio * cnts.maxWidth;
+                width = cnts.maxWidth;
+              } else {
+                //room on sides
+                height = cnts.maxHeight;
+                width = cnts.maxHeight / roomFile.aspectratio;
+              }
+
+              return Center(
+                  child: Container(
+                      child: EditingRoomDisplay(width, height),
+                      width: width,
+                      height: height));
+            })));
   }
 }
 
 class EditingRoomDisplay extends StatelessWidget {
   final double height;
   final double width;
-  EditingRoomDisplay(this.width,this.height);
+  EditingRoomDisplay(this.width, this.height);
 
   @override
   Widget build(BuildContext context) {
-    Point offsetToVertex(Offset position) {
-      return Point(
-        x: (position.dx - leftPading) / width,
-        y: 1 - (position.dy - bottomPading) / height,
-      );
-    }
-
     final image = Image.file(context.read<RoomEditorState>().roomFile.image,
-      width: width,
-      height: height,
-      key: Key('Forrest Hilton 2020 Dec 27'));
+        width: width, height: height, key: Key('Forrest Hilton 2020 Dec 27'));
     final room = context.read<RoomEditorState>().room;
     final selectedVertices = context.read<RoomEditorState>().selectedVertices;
 
@@ -122,7 +109,6 @@ class EditingRoomDisplay extends StatelessWidget {
       final dy = height * (a.y - b.y);
       final r = room.center([a, b]); // midpoint
       final distance = sqrt(dx * dx + dy * dy);
-      print("$dx,$dy");
       final line = Transform.rotate(
         origin: Offset.zero,
         angle: room.angle(a, b),
@@ -142,12 +128,9 @@ class EditingRoomDisplay extends StatelessWidget {
             Positioned(
                 child: GestureDetector(
                     onTapDown: (details) {
-                      editRoom(() {
-                        this
-                            .room
-                            .vertices
-                            .add(offsetToVertex(details.localPosition));
-                      });
+                      context.read<RoomEditorState>().addVertex(Point(
+                          x: details.localPosition.dx / width,
+                          y: 1 - details.localPosition.dy / height));
                     },
                     child: image))
           ] +
@@ -158,17 +141,11 @@ class EditingRoomDisplay extends StatelessWidget {
             final i = room.vertices.indexOf(r);
             //TODO Dragable
             return Positioned(
-                bottom: r.y * height + bottomPading - vertexSizeInPixels / 2,
-                left: r.x * width + leftPading - vertexSizeInPixels / 2,
+                bottom: r.y * height - vertexSizeInPixels / 2,
+                left: r.x * width - vertexSizeInPixels / 2,
                 child: GestureDetector(
                     onTap: () {
-                      setState(() {
-                        if (selectedVertices.contains(i)) {
-                          selectedVertices.remove(i);
-                        } else {
-                          selectedVertices.add(i);
-                        }
-                      });
+                      context.read<RoomEditorState>().onClickVertex(i);
                     },
                     child: selectedVertices.contains(i)
                         ? highlightedVertex
@@ -186,8 +163,8 @@ class EditingRoomDisplay extends StatelessWidget {
             );
 
             return Positioned(
-              left: center.x * width + leftPading - 100 / 2,
-              bottom: center.y * height + bottomPading - 81 / 2,
+              left: center.x * width - 100 / 2,
+              bottom: center.y * height - 81 / 2,
               child: SizedBox(
                 child: SizedBox(
                   child: Container(
@@ -228,7 +205,7 @@ Rows:${pew.rows.toStringAsFixed(0)} """, style: style),
   }
 }
 
-class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin  {
+class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin {
   late Room room;
   late RoomFile roomFile;
   List<String> histrory = [];
@@ -245,99 +222,119 @@ class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin  {
     notifyListeners();
   }
 
-  List<ActionDescription> ribbonActions()  => [
-      ActionDescription(
-        name: "Save",
-        helpDescription: "",
-        keyBoardShortcut: {LogicalKeyboardKey.control, LogicalKeyboardKey.keyS},
-        function: roomFile.save,
-      ),
-      ActionDescription(
-        name: "Import",
-        helpDescription:
-            "Import your image to annotate or a zip file save of an existing annotation",
-        keyBoardShortcut: {LogicalKeyboardKey.control, LogicalKeyboardKey.keyO},
-        function: roomFile.promptUserForPathAndCreate,
-      ),
-      ActionDescription(
-          name: "Unselect",
-          helpDescription: "clear the sellection",
-          keyBoardShortcut: {LogicalKeyboardKey.escape},
-          nullCondition: () => selectedVertices == [],
-          function: () {
-            selectedVertices = [];
-            notifyListeners();
-          }),
-      ActionDescription(
-        name: "Remove",
-        helpDescription:
-            "Remove all selected vertices and there edges and pews",
-        keyBoardShortcut: {LogicalKeyboardKey.backspace},
-        function: () {
-          selectedVertices.sort((a, b) => b.compareTo(a));
-          for (int index in selectedVertices) {
-            room.pews.removeWhere(
-                (pew) => [pew.bl, pew.br, pew.fr, pew.fl].contains(index));
-          }
-          List<Edge> newEdges = [];
-          OUTER:
-          for (final edge in room.edges) {
-            List<int> newEdgeIndices = [];
-            for (int endIndex in [edge.a, edge.b]) {
-              if (selectedVertices.contains(endIndex)) {
-                continue OUTER;
-              }
-              int decrementBy = 0;
-              for (int selected in selectedVertices) {
-                if (selected < endIndex) {
-                  decrementBy += 1;
-                } else {
-                  break;
-                }
-              }
-              endIndex -= decrementBy;
-              newEdgeIndices.add(endIndex);
-            }
-            newEdges.add(Edge(a: newEdgeIndices[0], b: newEdgeIndices[1]));
-          }
-          editRoom(() {
-            room.edges = newEdges;
+  void onClickVertex(i) {
+    if (selectedVertices.contains(i)) {
+      selectedVertices.remove(i);
+    } else {
+      selectedVertices.add(i);
+    }
+    notifyListeners();
+  }
 
-            for (final index in selectedVertices) {
-              room.vertices.removeAt(index);
-            }
-            selectedVertices = [];
-          });
-        },
-      ),
-      ActionDescription(
-        name: "Connect",
-        helpDescription: "Connect two edges",
-        keyBoardShortcut: {
-          LogicalKeyboardKey.space,
-          LogicalKeyboardKey.control
-        },
-        nullCondition: () => selectedVertices.length != 2,
-        function: () {
-          editRoom(() {
-            if (selectedVertices.length == 2) {
-              room.addEdge(
-                  Edge(a: selectedVertices[0], b: selectedVertices[1]));
-            }
-          });
-        },
-      ),
-      ActionDescription(
-          name: "Form Pew",
+  void addVertex(Point p) {
+    editRoom(() {
+      this.room.vertices.add(p);
+    });
+  }
+
+  List<ActionDescription> ribbonActions() => [
+        ActionDescription(
+          name: "Save",
           helpDescription: "",
           keyBoardShortcut: {
             LogicalKeyboardKey.control,
-            LogicalKeyboardKey.keyP
+            LogicalKeyboardKey.keyS
           },
-          nullCondition: () => selectedVertices.length != 4,
+          function: roomFile.save,
+        ),
+        ActionDescription(
+          name: "Import",
+          helpDescription:
+              "Import your image to annotate or a zip file save of an existing annotation",
+          keyBoardShortcut: {
+            LogicalKeyboardKey.control,
+            LogicalKeyboardKey.keyO
+          },
+          function: roomFile.promptUserForPathAndCreate,
+        ),
+        ActionDescription(
+            name: "Unselect",
+            helpDescription: "clear the sellection",
+            keyBoardShortcut: {LogicalKeyboardKey.escape},
+            nullCondition: () => selectedVertices == [],
+            function: () {
+              selectedVertices = [];
+              notifyListeners();
+            }),
+        ActionDescription(
+          name: "Remove",
+          helpDescription:
+              "Remove all selected vertices and there edges and pews",
+          keyBoardShortcut: {LogicalKeyboardKey.backspace},
           function: () {
-            // TODO: make corners appropriate order
-            setState(() {
+            selectedVertices.sort((a, b) => b.compareTo(a));
+            for (int index in selectedVertices) {
+              room.pews.removeWhere(
+                  (pew) => [pew.bl, pew.br, pew.fr, pew.fl].contains(index));
+            }
+            List<Edge> newEdges = [];
+            OUTER:
+            for (final edge in room.edges) {
+              List<int> newEdgeIndices = [];
+              for (int endIndex in [edge.a, edge.b]) {
+                if (selectedVertices.contains(endIndex)) {
+                  continue OUTER;
+                }
+                int decrementBy = 0;
+                for (int selected in selectedVertices) {
+                  if (selected < endIndex) {
+                    decrementBy += 1;
+                  } else {
+                    break;
+                  }
+                }
+                endIndex -= decrementBy;
+                newEdgeIndices.add(endIndex);
+              }
+              newEdges.add(Edge(a: newEdgeIndices[0], b: newEdgeIndices[1]));
+            }
+            editRoom(() {
+              room.edges = newEdges;
+
+              for (final index in selectedVertices) {
+                room.vertices.removeAt(index);
+              }
+              selectedVertices = [];
+            });
+          },
+        ),
+        ActionDescription(
+          name: "Connect",
+          helpDescription: "Connect two edges",
+          keyBoardShortcut: {
+            LogicalKeyboardKey.space,
+            LogicalKeyboardKey.control
+          },
+          nullCondition: () => selectedVertices.length != 2,
+          function: () {
+            editRoom(() {
+              if (selectedVertices.length == 2) {
+                room.addEdge(
+                    Edge(a: selectedVertices[0], b: selectedVertices[1]));
+              }
+            });
+          },
+        ),
+        ActionDescription(
+            name: "Form Pew",
+            helpDescription: "",
+            keyBoardShortcut: {
+              LogicalKeyboardKey.control,
+              LogicalKeyboardKey.keyP
+            },
+            nullCondition: () => selectedVertices.length != 4,
+            function: () {
+              // TODO: make corners appropriate order
               for (int indexInSelection = 0;
                   indexInSelection < 4;
                   indexInSelection++) {
@@ -353,78 +350,75 @@ class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin  {
                   fr: selectedVertices[1],
                   bl: selectedVertices[3],
                   br: selectedVertices[2]));
+              notifyListeners();
+            }),
+        ActionDescription(
+          helpDescription: "Move all selected vertices",
+          keyBoardShortcut: {LogicalKeyboardKey.arrowUp},
+          nullCondition: () => selectedVertices == [],
+          function: () {
+            editRoom(() {
+              // TODO: bounding box
+              for (int index in selectedVertices) {
+                room.vertices[index].y += 0.002;
+              }
             });
-          }),
-      ActionDescription(
-        helpDescription: "Move all selected vertices",
-        keyBoardShortcut: {LogicalKeyboardKey.arrowUp},
-        nullCondition: () => selectedVertices == [],
-        function: () {
-          editRoom(() {
-            // TODO: bounding box
-            for (int index in selectedVertices) {
-              room.vertices[index].y += 0.002;
-            }
-          });
-        },
-      ),
-      ActionDescription(
-        helpDescription: "Move all selected vertices",
-        keyBoardShortcut: {LogicalKeyboardKey.arrowDown},
-        nullCondition: () => selectedVertices == [],
-        function: () {
-          editRoom(() {
-            for (int index in selectedVertices) {
-              room.vertices[index].y -= 0.002;
-            }
-          });
-        },
-      ),
-      ActionDescription(
-        helpDescription: "Move all selected vertices",
-        keyBoardShortcut: {LogicalKeyboardKey.arrowRight},
-        nullCondition: () => selectedVertices == [],
-        function: () {
-          editRoom(() {
-            for (int index in selectedVertices) {
-              room.vertices[index].x += 0.002;
-            }
-          });
-        },
-      ),
-      ActionDescription(
-        helpDescription: "Move all selected vertices",
-        keyBoardShortcut: {LogicalKeyboardKey.arrowLeft},
-        nullCondition: () => selectedVertices == [],
-        function: () {
-          editRoom(() {
-            for (int index in selectedVertices) {
-              room.vertices[index].x -= 0.002;
-            }
-          });
-        },
-      ),
-      ActionDescription(
-        name: "Undo",
-        helpDescription: "Undo the last change",
-        keyBoardShortcut: {LogicalKeyboardKey.keyZ, LogicalKeyboardKey.control},
-        function: () {
-          setState(() {
+          },
+        ),
+        ActionDescription(
+          helpDescription: "Move all selected vertices",
+          keyBoardShortcut: {LogicalKeyboardKey.arrowDown},
+          nullCondition: () => selectedVertices == [],
+          function: () {
+            editRoom(() {
+              for (int index in selectedVertices) {
+                room.vertices[index].y -= 0.002;
+              }
+            });
+          },
+        ),
+        ActionDescription(
+          helpDescription: "Move all selected vertices",
+          keyBoardShortcut: {LogicalKeyboardKey.arrowRight},
+          nullCondition: () => selectedVertices == [],
+          function: () {
+            editRoom(() {
+              for (int index in selectedVertices) {
+                room.vertices[index].x += 0.002;
+              }
+            });
+          },
+        ),
+        ActionDescription(
+          helpDescription: "Move all selected vertices",
+          keyBoardShortcut: {LogicalKeyboardKey.arrowLeft},
+          nullCondition: () => selectedVertices == [],
+          function: () {
+            editRoom(() {
+              for (int index in selectedVertices) {
+                room.vertices[index].x -= 0.002;
+              }
+            });
+          },
+        ),
+        ActionDescription(
+          name: "Undo",
+          helpDescription: "Undo the last change",
+          keyBoardShortcut: {
+            LogicalKeyboardKey.keyZ,
+            LogicalKeyboardKey.control
+          },
+          function: () {
             this.room = Room.fromRawJson(histrory.last);
-          });
-          histrory.removeLast();
-        },
-      ),
-  ]; 
+            notifyListeners();
+            histrory.removeLast();
+          },
+        ),
+      ];
 
   @override
-  _RoomEditorState() {
-    roomFile = RoomFile(setState, onLoadOfAnotaitions);
+  RoomEditorState() {
+    roomFile = RoomFile(notifyListeners, onLoadOfAnotaitions);
     roomFile.promptUserForPathAndCreate();
   }
-
-  @override
-  
-
-  // rendering generally
 }
