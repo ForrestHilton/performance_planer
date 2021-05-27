@@ -12,13 +12,13 @@ class RoomFile {
   late final File image;
   late final double aspectratio;
   late final Room room;
-  final void Function(VoidCallback) parentSetState;
+  final VoidCallback parentNotifyListeners;
   final VoidCallback onLoadOfAnotaitions;
 
   bool isReady = false;
   bool isWaitingForInitialisation = true;
 
-  RoomFile(this.parentSetState, this.onLoadOfAnotaitions);
+  RoomFile(this.parentNotifyListeners, this.onLoadOfAnotaitions);
 
   void promptUserForPathAndCreate() async {
     late final selectedPath = "./user_files/out.zip";
@@ -76,9 +76,8 @@ class RoomFile {
     this.image = image;
     final decoded = await decodeImageFromList(image.readAsBytesSync());
 
-    parentSetState(() {
-      aspectratio = decoded.height / decoded.width;
-      isReady = true;
-    });
+    aspectratio = decoded.height / decoded.width;
+    isReady = true;
+    parentNotifyListeners();
   }
 }
