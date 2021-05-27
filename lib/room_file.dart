@@ -10,7 +10,7 @@ import 'room_graph.dart';
 class RoomFile {
   late final String path;
   late final File image;
-  late final double aspectratio;
+  late final double aspectRatio;
   late final Room room;
   final VoidCallback parentNotifyListeners;
   final VoidCallback onLoadOfAnotaitions;
@@ -76,7 +76,7 @@ class RoomFile {
     this.image = image;
     final decoded = await decodeImageFromList(image.readAsBytesSync());
 
-    aspectratio = decoded.height / decoded.width;
+    aspectRatio = decoded.height / decoded.width;
     isReady = true;
     parentNotifyListeners();
   }
