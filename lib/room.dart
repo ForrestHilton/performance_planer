@@ -60,8 +60,8 @@ class EditingRoomDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     final image = Image.file(context.read<RoomEditorState>().roomFile.image,
         width: width, height: height, key: Key('Forrest Hilton 2020 Dec 27'));
-    final room = context.read<RoomEditorState>().room;
-    final selectedVertices = context.read<RoomEditorState>().selectedVertices;
+    final room = context.watch<RoomEditorState>().room;
+    final selectedVertices = context.watch<RoomEditorState>().selectedVertices;
 
     final double vertexSizeInPixels = width / 80;
     final double dashSizeInPixels = width / 220;
@@ -90,18 +90,6 @@ class EditingRoomDisplay extends StatelessWidget {
       ),
     );
 
-    final dash = Container(
-      // TODO: change size to be screen dependent
-      // TODO: fix colors
-      width: dashSizeInPixels,
-      height: dashSizeInPixels,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.green,
-        border: null,
-      ),
-    );
-
     Positioned edge(Edge info) {
       final a = room.vertices[info.a];
       final b = room.vertices[info.b];
@@ -112,14 +100,13 @@ class EditingRoomDisplay extends StatelessWidget {
       final line = Transform.rotate(
         origin: Offset.zero,
         angle: room.angle(a, b),
+        alignment: Alignment.center,
         child: Container(
             width: distance, color: Colors.green, height: dashSizeInPixels),
       );
       return Positioned(
-          top: height * max(a.y, b.y),
-          bottom: height * min(a.y, b.y),
-          left: width * max(a.x, b.x),
-          right: width * min(a.x, b.x),
+          bottom: height * r.y,
+          left: width * r.x - distance/2,
           child: line);
     }
 
