@@ -98,16 +98,13 @@ class EditingRoomDisplay extends StatelessWidget {
       final r = room.center([a, b]); // midpoint
       final distance = sqrt(dx * dx + dy * dy);
       final line = Transform.rotate(
-        origin: Offset.zero,
-        angle: room.angle(a, b),
+        angle: room.angle(a, b, width, height),
         alignment: Alignment.center,
         child: Container(
             width: distance, color: Colors.green, height: dashSizeInPixels),
       );
       return Positioned(
-          bottom: height * r.y,
-          left: width * r.x - distance/2,
-          child: line);
+          bottom: height * r.y, left: width * r.x - distance / 2, child: line);
     }
 
     final ret = Stack(
@@ -171,7 +168,7 @@ Rows:${pew.rows.toStringAsFixed(0)} """, style: style),
                               style: style,
                             ),
                             Transform.rotate(
-                              angle: room.angle(center, frontOfPew),
+                              angle: room.angle(center, frontOfPew, width, height),
                               child: Icon(
                                 Icons.arrow_forward,
                                 color: Colors.red,

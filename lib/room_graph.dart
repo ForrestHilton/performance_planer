@@ -59,9 +59,9 @@ class Room {
   }
 
   /// the angle in CW radians from +x to the lane from a to b
-  double angle(Point a, Point b) {
+  double angle(Point a, Point b, double width, double height) {
     bool faceingLeft = b.x < a.x;
-    var ret = atan(line(a, b).m) + (faceingLeft ? pi : 0);
+    var ret = atan(line(a, b).m/width*height) + (faceingLeft ? pi : 0);
     ret = -ret;
     if (ret < 0) {
       ret += 2 * pi;
