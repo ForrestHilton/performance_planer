@@ -1,4 +1,6 @@
 // Copyright 2021 Forrest Hilton; licensed under GPL-3.0-or-later; See COPYING.txt
+// This file contains a list of buttons and shortcuts for the room editor, the editor page,
+// the display of the room for the editor, and the state provider for the editor.
 import 'dart:core';
 import 'dart:math';
 import 'dart:ui';
@@ -13,6 +15,7 @@ import 'room_graph.dart';
 import 'keyboard_shortcuts.dart';
 import 'room_file.dart';
 
+// full page widget
 class Editor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -62,7 +65,7 @@ class Editor extends StatelessWidget {
             LogicalKeyboardKey.keyP
           },
           nullCondition: () => state.selectedVertices.length != 4,
-          function: state.formPew ),
+          function: state.formPew),
       ActionDescription(
         helpDescription: "Move all selected vertices",
         keyBoardShortcut: {LogicalKeyboardKey.arrowUp},
@@ -94,6 +97,7 @@ class Editor extends StatelessWidget {
         function: state.undo,
       ),
     ];
+
     return Scaffold(
         appBar: AppBar(
             title: Text("Room Editor"),
@@ -219,7 +223,7 @@ class EditingRoomDisplay extends StatelessWidget {
                 .map((i) => room.vertices[i])
                 .toList());
             Point frontOfPew =
-                room.center([room.vertices[pew.fr], room.vertices[pew.fr]]);
+                room.center([room.vertices[pew.fr], room.vertices[pew.fl]]);
             final style = TextStyle(
               fontWeight: FontWeight.bold,
               color: Colors.red,
@@ -301,16 +305,16 @@ class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin {
     });
   }
 
-  void clearSelection () {
+  void clearSelection() {
     selectedVertices = [];
     notifyListeners();
   }
 
-  void remove () {
+  void remove() {
     selectedVertices.sort((a, b) => b.compareTo(a));
     for (int index in selectedVertices) {
       room.pews.removeWhere(
-        (pew) => [pew.bl, pew.br, pew.fr, pew.fl].contains(index));
+          (pew) => [pew.bl, pew.br, pew.fr, pew.fl].contains(index));
     }
     List<Edge> newEdges = [];
     OUTER:
@@ -334,83 +338,89 @@ class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin {
       newEdges.add(Edge(a: newEdgeIndices[0], b: newEdgeIndices[1]));
     }
     editRoom(() {
-        room.edges = newEdges;
-        
-        for (final index in selectedVertices) {
-          room.vertices.removeAt(index);
-        }
-        selectedVertices = [];
-    });
-  }
-  
-  void connect () {
-    editRoom(() {
-        if (selectedVertices.length == 2) {
-          room.addEdge(
-            Edge(a: selectedVertices[0], b: selectedVertices[1]));
-        }
+      room.edges = newEdges;
+
+      for (final index in selectedVertices) {
+        room.vertices.removeAt(index);
+      }
+      selectedVertices = [];
     });
   }
 
-  void formPew () {
-    // TODO: make corners appropriate order
-    for (int indexInSelection = 0;
-      indexInSelection < 4;
-      indexInSelection++) {
+  void connect() {
+    editRoom(() {
+      if (selectedVertices.length == 2) {
+        room.addEdge(Edge(a: selectedVertices[0], b: selectedVertices[1]));
+      }
+    });
+  }
+
+  void formPew() {
+    // put vertesies in clockwize order
+    final Point center =
+        room.center(selectedVertices.map((i) => room.vertices[i]).toList());
+    selectedVertices.sort((a, b) => room
+        .angle(center, room.vertices[a], 1, 1)
+        .compareTo(room.angle(center, room.vertices[b], 1, 1)));
+    print(selectedVertices);
+
+    // add edges if needed
+    for (int indexInSelection = 0; indexInSelection < 4; indexInSelection++) {
       room.addEdge(Edge(
           a: selectedVertices[indexInSelection],
           b: selectedVertices[(indexInSelection + 1) % 4]));
     }
+    // add pew
     room.pews.add(Pew(
         name: 'Test',
         width: 20,
         rows: 12,
-        fl: selectedVertices[0],
-        fr: selectedVertices[1],
-        bl: selectedVertices[3],
-        br: selectedVertices[2]));
+        fl: selectedVertices[2],
+        fr: selectedVertices[3],
+        bl: selectedVertices[1],
+        br: selectedVertices[0]));
     notifyListeners();
   }
-  
-  void moveUp () {
+
+  void moveUp() {
     editRoom(() {
-        // TODO: bounding box
-        for (int index in selectedVertices) {
-          room.vertices[index].y += 0.002;
-        }
+      // TODO: bounding box
+      for (int index in selectedVertices) {
+        room.vertices[index].y += 0.002;
+      }
     });
   }
 
   void moveDown() {
     editRoom(() {
-        for (int index in selectedVertices) {
-          room.vertices[index].y -= 0.002;
-        }
+      for (int index in selectedVertices) {
+        room.vertices[index].y -= 0.002;
+      }
     });
   }
 
-  void moveRight () {
+  void moveRight() {
     editRoom(() {
-        for (int index in selectedVertices) {
-          room.vertices[index].x += 0.002;
-        }
+      for (int index in selectedVertices) {
+        room.vertices[index].x += 0.002;
+      }
     });
   }
-  
-  void moveLeft () {
+
+  void moveLeft() {
     editRoom(() {
-        for (int index in selectedVertices) {
-          room.vertices[index].x -= 0.002;
-        }
+      for (int index in selectedVertices) {
+        room.vertices[index].x -= 0.002;
+      }
     });
   }
-  
-  void undo () {
+
+  void undo() {
     this.room = Room.fromRawJson(histrory.last);
     notifyListeners();
     histrory.removeLast();
   }
-  
+
   @override
   RoomEditorState() {
     roomFile = RoomFile(notifyListeners, onLoadOfAnotaitions);
