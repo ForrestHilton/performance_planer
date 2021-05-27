@@ -1,16 +1,20 @@
 // Copyright 2021 Forrest Hilton; licensed under GPL-3.0-or-later; See COPYING.txt
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'room.dart';
 
 
 void main() {
-  runApp(MaterialApp(
-      initialRoute: '/',
-      routes: {
-        '/': (context) => HomeRoute(),
-        '/room_editor': (context) => RoomEditor(),
-      },
-    ));
+  runApp(MultiProvider(
+      providers: [ChangeNotifierProvider(create: (_) => RoomEditorState() )],
+    child: MaterialApp(
+        initialRoute: '/',
+        routes: {
+          '/': (context) => HomeRoute(),
+          '/room_editor': (context) => Editor(),
+        },
+      ),
+  ));
 }
 
 class HomeRoute extends StatelessWidget {

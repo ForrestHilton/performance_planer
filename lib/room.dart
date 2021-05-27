@@ -3,44 +3,18 @@ import 'dart:core';
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'package:provider/provider.dart';
 
 import 'room_graph.dart';
 import 'keyboard_shortcuts.dart';
 import 'room_file.dart';
 
-class RoomEditor extends StatefulWidget {
-  @override
-  _RoomEditorState createState() => _RoomEditorState();
-}
-
-class _RoomEditorState extends State<RoomEditor> {
-  late Room room;
-  late RoomFile roomFile;
-  List<String> histrory = [];
-  List<int> selectedVertices = [];
-
-  void editRoom(void Function() action) {
-    histrory.add(room.toRawJson());
-    setState(() {
-      action();
-    });
-  }
-
-  void onLoadOfAnotaitions() {
-    setState(() {
-      room = roomFile.room;
-    });
-  }
-
-  @override
-  _RoomEditorState() {
-    roomFile = RoomFile(setState, onLoadOfAnotaitions);
-    roomFile.promptUserForPathAndCreate();
-  }
-
+class Editor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     List<ActionDescription> ribbonActions = [
@@ -48,7 +22,7 @@ class _RoomEditorState extends State<RoomEditor> {
         name: "Save",
         helpDescription: "",
         keyBoardShortcut: {LogicalKeyboardKey.control, LogicalKeyboardKey.keyS},
-        function: roomFile.save,
+        function: context.read<RoomEditorState>().roomFile.save,
       ),
       ActionDescription(
         name: "Import",
@@ -225,9 +199,11 @@ class _RoomEditorState extends State<RoomEditor> {
             shortcuts: ribbonActions,
             child: LayoutBuilder(builder: this._pageBody)));
   }
+}
 
-  // rendering generally
-  Widget _pageBody(BuildContext cxt, BoxConstraints cnts) {
+class EditingRoomDisplay extends StatelessWidget {
+  @override
+  Widget Build(BuildContext cxt, BoxConstraints cnts) {
     if (!roomFile.isReady) return Text('');
     final image = Image.file(roomFile.image,
         height: cnts.maxHeight,
@@ -410,4 +386,34 @@ Rows:${pew.rows.toStringAsFixed(0)} """, style: style),
     );
     return ret;
   }
+}
+
+class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin  {
+  late Room room;
+  late RoomFile roomFile;
+  List<String> histrory = [];
+  List<int> selectedVertices = [];
+
+  void editRoom(void Function() action) {
+    histrory.add(room.toRawJson());
+    action();
+    notifyListeners();
+  }
+
+  void onLoadOfAnotaitions() {
+    setState(() {
+      room = roomFile.room;
+    });
+  }
+
+  @override
+  _RoomEditorState() {
+    roomFile = RoomFile(setState, onLoadOfAnotaitions);
+    roomFile.promptUserForPathAndCreate();
+  }
+
+  @override
+  
+
+  // rendering generally
 }
