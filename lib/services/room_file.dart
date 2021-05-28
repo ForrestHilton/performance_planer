@@ -5,7 +5,7 @@ import 'package:archive/archive_io.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'room_graph.dart';
+import '../models/room_graph.dart';
 
 class RoomFile {
   late final String path;
