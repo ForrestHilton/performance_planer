@@ -49,8 +49,13 @@ class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin {
 
   void changePewNRows(pew, int value) {
     editRoom(() {
-        pew.rows
-        = value;
+      pew.rows = value;
+    });
+  }
+
+  void clockwiseShuffle(Pew pew) {
+    editRoom(() {
+      throw UnimplementedError();
     });
   }
 
@@ -181,5 +186,4 @@ class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin {
     roomFile = RoomFile(notifyListeners, onLoadOfAnotaitions);
     roomFile.promptUserForPathAndCreate();
   }
-
 }

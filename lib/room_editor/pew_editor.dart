@@ -50,8 +50,8 @@ class _PewDisplayAndEditorState extends State<PewDisplayAndEditor> {
         room.pews[state.selectedPew!] == widget.pew) {
       return Container(
         color: Colors.white.withOpacity(1.0),
-        width: 200,
-        height: 300,
+        width: 145 ,
+        height: 175,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -65,17 +65,19 @@ class _PewDisplayAndEditorState extends State<PewDisplayAndEditor> {
                         child: Text("pew name:"),
                         width: 60,
                       ),
-                      TextFormField(
-                        initialValue: widget.pew.name,
-                        onChanged: (text) {
-                          state.changePewName(widget.pew, text);
-                        },
-                        autovalidateMode: AutovalidateMode.always,
-                        validator: (text) {
-                          if (text == null || text.isEmpty)
-                            return "please give the seating area a name";
-                          return null;
-                        },
+                      Flexible(
+                        child: TextFormField(
+                          initialValue: widget.pew.name,
+                          onChanged: (text) {
+                            state.changePewName(widget.pew, text);
+                          },
+                          autovalidateMode: AutovalidateMode.always,
+                          validator: (text) {
+                            if (text == null || text.isEmpty)
+                              return "please give the seating area a name";
+                            return null;
+                          },
+                        ),
                       ),
                     ],
                   ),
@@ -85,23 +87,25 @@ class _PewDisplayAndEditorState extends State<PewDisplayAndEditor> {
                         child: Text("width (feet):"),
                         width: 60,
                       ),
-                      TextFormField(
-                        initialValue: widget.pew.width.toStringAsFixed(1),
-                        keyboardType: TextInputType.number,
-                        autovalidateMode: AutovalidateMode.always,
-                        onChanged: (text) {
-                          final value = double.tryParse(text);
-                          if (value != null) {
-                            state.changePewWidth(widget.pew, value);
-                          }
-                        },
-                        validator: (text) {
-                          if (text == null || text.isEmpty)
-                            return "please give the seating area a width";
-                          if (double.tryParse(text) == null)
-                            return "please give a number of feet";
-                          return null;
-                        },
+                      Flexible(
+                        child: TextFormField(
+                          initialValue: widget.pew.width.toStringAsFixed(1),
+                          keyboardType: TextInputType.number,
+                          autovalidateMode: AutovalidateMode.always,
+                          onChanged: (text) {
+                            final value = double.tryParse(text);
+                            if (value != null) {
+                              state.changePewWidth(widget.pew, value);
+                            }
+                          },
+                          validator: (text) {
+                            if (text == null || text.isEmpty)
+                              return "please give the seating area a width";
+                            if (double.tryParse(text) == null)
+                              return "please give a number of feet";
+                            return null;
+                          },
+                        ),
                       ),
                     ],
                   ),
@@ -111,23 +115,25 @@ class _PewDisplayAndEditorState extends State<PewDisplayAndEditor> {
                         child: Text("depth (pews):"),
                         width: 60,
                       ),
-                      TextFormField(
-                        initialValue: widget.pew.rows.toStringAsFixed(0),
-                        keyboardType: TextInputType.number,
-                        autovalidateMode: AutovalidateMode.always,
-                        onChanged: (text) {
-                          final value = int.tryParse(text);
-                          if (value != null) {
-                            state.changePewNRows(widget.pew, value);
-                          }
-                        },
-                        validator: (text) {
-                          if (text == null || text.isEmpty)
-                            return "please give the seating area a depth";
-                          if (int.tryParse(text) == null)
-                            return "please give an integer number of feet";
-                          return null;
-                        },
+                      Flexible(
+                        child: TextFormField(
+                          initialValue: widget.pew.rows.toStringAsFixed(0),
+                          keyboardType: TextInputType.number,
+                          autovalidateMode: AutovalidateMode.always,
+                          onChanged: (text) {
+                            final value = int.tryParse(text);
+                            if (value != null) {
+                              state.changePewNRows(widget.pew, value);
+                            }
+                          },
+                          validator: (text) {
+                            if (text == null || text.isEmpty)
+                              return "please give the seating area a depth";
+                            if (int.tryParse(text) == null)
+                              return "please give an integer number of feet";
+                            return null;
+                          },
+                        ),
                       ),
                     ],
                   ),
@@ -138,7 +144,6 @@ class _PewDisplayAndEditorState extends State<PewDisplayAndEditor> {
               children: [
                 Text(
                   "Facing:",
-                  style: style,
                 ),
                 Transform.rotate(
                   angle: room.angle(
@@ -146,8 +151,22 @@ class _PewDisplayAndEditorState extends State<PewDisplayAndEditor> {
                   child: Icon(
                     Icons.arrow_forward,
                     color: Colors.red,
-                    size: 18.0,
+                    size: 25.0,
                   ),
+                ),
+                Text("rotate:"),
+                Container(
+                  width: 27,
+                  height: 27,
+                  child: FloatingActionButton(
+                    backgroundColor: Colors.white,
+                    child: Icon(
+                        Icons.rotate_90_degrees_ccw,
+                        color: Colors.red,
+                        size: 25.0,
+                      ),
+                      onPressed: () => state.clockwiseShuffle(widget.pew)
+                    ),
                 )
               ],
             ),
