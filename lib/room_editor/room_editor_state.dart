@@ -8,6 +8,7 @@ class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin {
   late RoomFile roomFile;
   List<String> histrory = [];
   List<int> selectedVertices = [];
+  int? selectedPew;
 
   void editRoom(void Function() action) {
     histrory.add(room.toRawJson());
@@ -29,6 +30,30 @@ class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin {
     notifyListeners();
   }
 
+  void selectPew(Pew pew) {
+    selectedPew = room.pews.indexOf(pew);
+    notifyListeners();
+  }
+
+  void changePewName(Pew pew, String text) {
+    editRoom(() {
+      pew.name = text;
+    });
+  }
+
+  void changePewWidth(Pew pew, double value) {
+    editRoom(() {
+      pew.width = value;
+    });
+  }
+
+  void changePewNRows(pew, int value) {
+    editRoom(() {
+        pew.rows
+        = value;
+    });
+  }
+
   void addVertex(Point p) {
     editRoom(() {
       this.room.vertices.add(p);
@@ -37,6 +62,7 @@ class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin {
 
   void clearSelection() {
     selectedVertices = [];
+    selectedPew = null;
     notifyListeners();
   }
 
@@ -92,7 +118,6 @@ class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin {
     selectedVertices.sort((a, b) => room
         .angle(center, room.vertices[a], 1, 1)
         .compareTo(room.angle(center, room.vertices[b], 1, 1)));
-    print(selectedVertices);
 
     // add edges if needed
     for (int indexInSelection = 0; indexInSelection < 4; indexInSelection++) {
@@ -156,4 +181,5 @@ class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin {
     roomFile = RoomFile(notifyListeners, onLoadOfAnotaitions);
     roomFile.promptUserForPathAndCreate();
   }
+
 }

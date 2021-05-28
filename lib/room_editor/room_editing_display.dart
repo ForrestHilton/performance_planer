@@ -3,6 +3,7 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:performance_planer/room_editor/pew_editor.dart';
 import 'package:provider/provider.dart';
 import 'room_editor_state.dart';
 import '../models/room_graph.dart';
@@ -18,6 +19,7 @@ class EditingRoomDisplay extends StatelessWidget {
         width: width, height: height, key: Key('Forrest Hilton 2020 Dec 27'));
     final room = context.watch<RoomEditorState>().room;
     final selectedVertices = context.watch<RoomEditorState>().selectedVertices;
+    final state = context.watch<RoomEditorState>();
 
     final double vertexSizeInPixels = width / 80;
     final double dashSizeInPixels = width / 220;
@@ -97,46 +99,10 @@ class EditingRoomDisplay extends StatelessWidget {
             Point center = room.center([pew.bl, pew.fl, pew.br, pew.fr]
                 .map((i) => room.vertices[i])
                 .toList());
-            Point frontOfPew =
-                room.center([room.vertices[pew.fr], room.vertices[pew.fl]]);
-            final style = TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.red,
-            );
-
             return Positioned(
-              left: center.x * width - 100 / 2,
-              bottom: center.y * height - 81 / 2,
-              child: Container(
-                color: Colors.white.withOpacity(.6),
-                width: 100,
-                height: 81,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("""\"${pew.name}\"
-Width:${pew.width.toStringAsFixed(0)} ft
-Rows:${pew.rows.toStringAsFixed(0)} """, style: style),
-                    Row(
-                      children: [
-                        Text(
-                          "Facing:",
-                          style: style,
-                        ),
-                        Transform.rotate(
-                          angle: room.angle(center, frontOfPew, width, height),
-                          child: Icon(
-                            Icons.arrow_forward,
-                            color: Colors.red,
-                            size: 18.0,
-                          ),
-                        )
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            );
+                left: center.x * width - 100 / 2,
+                bottom: center.y * height - 81 / 2,
+                child: PewDisplayAndEditor(pew: pew,width: width,height: height));
           }).toList(),
     );
     return ret;
