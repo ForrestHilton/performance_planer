@@ -53,9 +53,11 @@ class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin {
     });
   }
 
-  void clockwiseShuffle(Pew pew) {
+  void counterClockwiseShuffle(Pew pew) {
     editRoom(() {
-      throw UnimplementedError();
+      final first = pew.corners.first;
+      pew.corners.removeAt(0);
+      pew.corners.add(first);
     });
   }
 
@@ -117,12 +119,12 @@ class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin {
   }
 
   void formPew() {
-    // put vertesies in clockwize order
+    // put vertesies in counter clockwize order starting with 1st quadrant
     final Point center =
         room.center(selectedVertices.map((i) => room.vertices[i]).toList());
     selectedVertices.sort((a, b) => room
-        .angle(center, room.vertices[a], 1, 1)
-        .compareTo(room.angle(center, room.vertices[b], 1, 1)));
+        .angle(center, room.vertices[b], 1, 1)
+        .compareTo(room.angle(center, room.vertices[a], 1, 1)));
 
     // add edges if needed
     for (int indexInSelection = 0; indexInSelection < 4; indexInSelection++) {
@@ -131,14 +133,8 @@ class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin {
           b: selectedVertices[(indexInSelection + 1) % 4]));
     }
     // add pew
-    room.pews.add(Pew(
-        name: 'Test',
-        width: 20,
-        rows: 12,
-        fl: selectedVertices[2],
-        fr: selectedVertices[3],
-        bl: selectedVertices[1],
-        br: selectedVertices[0]));
+    room.pews
+        .add(Pew(name: 'Test', width: 20, rows: 12, corners: selectedVertices));
     notifyListeners();
   }
 

@@ -50,7 +50,7 @@ class _PewDisplayAndEditorState extends State<PewDisplayAndEditor> {
         room.pews[state.selectedPew!] == widget.pew) {
       return Container(
         color: Colors.white.withOpacity(1.0),
-        width: 145 ,
+        width: 145,
         height: 175,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -161,12 +161,12 @@ class _PewDisplayAndEditorState extends State<PewDisplayAndEditor> {
                   child: FloatingActionButton(
                     backgroundColor: Colors.white,
                     child: Icon(
-                        Icons.rotate_90_degrees_ccw,
-                        color: Colors.red,
-                        size: 25.0,
-                      ),
-                      onPressed: () => state.clockwiseShuffle(widget.pew)
+                      Icons.rotate_90_degrees_ccw,
+                      color: Colors.red,
+                      size: 25.0,
                     ),
+                    onPressed: () => state.counterClockwiseShuffle(widget.pew)
+                  ),
                 )
               ],
             ),

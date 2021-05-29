@@ -1,5 +1,5 @@
 // Copyright 2021 Forrest Hilton; licensed under GPL-3.0-or-later; See COPYING.txt
-// This file initially generated 08:46:37 PM 29 11 (November) 2020
+// This file initially generated 29 Nov 2020
 // using https://app.quicktype.io/, room.json, and encoder+decoder and require all.
 
 import 'dart:math';
@@ -61,7 +61,7 @@ class Room {
   /// the angle in CW radians from +x to the lane from a to b
   double angle(Point a, Point b, double width, double height) {
     bool faceingLeft = b.x < a.x;
-    var ret = atan(line(a, b).m/width*height) + (faceingLeft ? pi : 0);
+    var ret = atan(line(a, b).m / width * height) + (faceingLeft ? pi : 0);
     ret = -ret;
     if (ret < 0) {
       ret += 2 * pi;
@@ -104,19 +104,27 @@ class Edge {
 /// An object containing the vertex indices of the corners of a pew among other things
 class Pew {
   Pew({
-    required this.fr,
-    required this.fl,
-    required this.br,
-    required this.bl,
-    required this.name,
-    required this.rows,
-    required this.width,
+      required this.corners,
+      required this.name,
+      required this.rows,
+      required this.width,
   });
 
-  int fr;
-  int fl;
-  int br;
-  int bl;
+  /// a CCW list starting at from right
+  List<int> corners;
+
+  int get fr => corners[0];
+  set fr(int fr) => corners[0] = fr;
+
+  int get fl => corners[1];
+  set fl(int fl) => corners[1] = fl;
+
+  int get br => corners[3];
+  set br(int br) => corners[3] = br;
+
+  int get bl => corners[2];
+  set bl(int bl) => corners[2] = bl;
+
   String name;
   int rows;
 
@@ -128,24 +136,18 @@ class Pew {
   String toRawJson() => json.encode(toJson());
 
   factory Pew.fromJson(Map<String, dynamic> json) => Pew(
-        fr: json["fr"],
-        fl: json["fl"],
-        br: json["br"],
-        bl: json["bl"],
-        name: json["name"],
-        rows: json["rows"],
-        width: json["width"],
-      );
+    corners: json["corners"],
+    name: json["name"],
+    rows: json["rows"],
+    width: json["width"],
+  );
 
   Map<String, dynamic> toJson() => {
-        "fr": fr,
-        "fl": fl,
-        "br": br,
-        "bl": bl,
-        "name": name,
-        "rows": rows,
-        "width": width
-      };
+    "corners": corners,
+    "name": name,
+    "rows": rows,
+    "width": width
+  };
 }
 
 class Point {
