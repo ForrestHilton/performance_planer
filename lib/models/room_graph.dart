@@ -33,15 +33,6 @@ class Room {
         "pews": List<dynamic>.from(pews.map((x) => x.toJson())),
       };
 
-  /// average position of listed Points
-  Point center(List<Point> list) {
-    Point ret = Point(x: 0, y: 0);
-    for (Point p in list) {
-      ret.x += p.x;
-      ret.y += p.y;
-    }
-    return Point(x: ret.x / list.length, y: ret.y / list.length);
-  }
 
   bool hasEdge(Edge edge) {
     return edges.contains(edge) || edges.contains(Edge(b: edge.a, a: edge.b));
@@ -52,23 +43,34 @@ class Room {
     if (!hasEdge(edge)) edges.add(edge);
   }
 
-  Line line(Point a, Point b) {
-    final m = (b.y - a.y) / (b.x - a.x);
-    final _b = a.y - a.x * m;
-    return Line(m, _b);
+}
+
+/// average position of listed Points
+Point center(List<Point> list) {
+  Point ret = Point(x: 0, y: 0);
+  for (Point p in list) {
+    ret.x += p.x;
+    ret.y += p.y;
+  }
+  return Point(x: ret.x / list.length, y: ret.y / list.length);
+}
+
+Line line(Point a, Point b) {
+  final m = (b.y - a.y) / (b.x - a.x);
+  final _b = a.y - a.x * m;
+  return Line(m, _b);
+}
+
+/// the angle in CW radians from +x to the lane from a to b
+double angle(Point a, Point b, double width, double height) {
+  bool faceingLeft = b.x < a.x;
+  var ret = atan(line(a, b).m / width * height) + (faceingLeft ? pi : 0);
+  ret = -ret;
+  if (ret < 0) {
+    ret += 2 * pi;
   }
 
-  /// the angle in CW radians from +x to the lane from a to b
-  double angle(Point a, Point b, double width, double height) {
-    bool faceingLeft = b.x < a.x;
-    var ret = atan(line(a, b).m / width * height) + (faceingLeft ? pi : 0);
-    ret = -ret;
-    if (ret < 0) {
-      ret += 2 * pi;
-    }
-
-    return ret;
-  }
+  return ret;
 }
 
 class Line {

@@ -12,7 +12,7 @@ export 'package:flutter/rendering.dart';
 
 /// this will build to a un-positioned floating editor iff the pew is selected, otherwize
 /// it will build to a static display of the pews data
-class PewDisplayAndEditor extends StatefulWidget {
+class PewDisplayAndEditor extends StatelessWidget {
   final pew;
 
   /// the parents aspect ratio
@@ -23,31 +23,25 @@ class PewDisplayAndEditor extends StatefulWidget {
       : super(key: key);
 
   @override
-  State<PewDisplayAndEditor> createState() => _PewDisplayAndEditorState();
-}
-
-class _PewDisplayAndEditorState extends State<PewDisplayAndEditor> {
-  final _formKey = GlobalKey<FormState>();
-  @override
   Widget build(BuildContext context) {
     final room = context.watch<RoomEditorState>().room;
     final state = context.watch<RoomEditorState>();
 
-    Point center = room.center([
-      widget.pew.bl,
-      widget.pew.fl,
-      widget.pew.br,
-      widget.pew.fr
+    Point centerP = center([
+      pew.bl,
+      pew.fl,
+      pew.br,
+      pew.fr
     ].map((i) => room.vertices[i]).toList());
-    Point frontOfPew = room
-        .center([room.vertices[widget.pew.fr], room.vertices[widget.pew.fl]]);
+    Point frontOfPew = 
+        center([room.vertices[pew.fr], room.vertices[pew.fl]]);
     final style = TextStyle(
       fontWeight: FontWeight.bold,
       color: Colors.red,
     );
 
     if (state.selectedPew != null &&
-        room.pews[state.selectedPew!] == widget.pew) {
+        room.pews[state.selectedPew!] == pew) {
       return Container(
         color: Colors.white.withOpacity(1.0),
         width: 145,
@@ -56,7 +50,6 @@ class _PewDisplayAndEditorState extends State<PewDisplayAndEditor> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Form(
-              key: _formKey,
               child: Column(
                 children: [
                   Row(
@@ -67,9 +60,9 @@ class _PewDisplayAndEditorState extends State<PewDisplayAndEditor> {
                       ),
                       Flexible(
                         child: TextFormField(
-                          initialValue: widget.pew.name,
+                          initialValue: pew.name,
                           onChanged: (text) {
-                            state.changePewName(widget.pew, text);
+                            state.changePewName(pew, text);
                           },
                           autovalidateMode: AutovalidateMode.always,
                           validator: (text) {
@@ -89,13 +82,13 @@ class _PewDisplayAndEditorState extends State<PewDisplayAndEditor> {
                       ),
                       Flexible(
                         child: TextFormField(
-                          initialValue: widget.pew.width.toStringAsFixed(1),
+                          initialValue: pew.width.toStringAsFixed(1),
                           keyboardType: TextInputType.number,
                           autovalidateMode: AutovalidateMode.always,
                           onChanged: (text) {
                             final value = double.tryParse(text);
                             if (value != null) {
-                              state.changePewWidth(widget.pew, value);
+                              state.changePewWidth(pew, value);
                             }
                           },
                           validator: (text) {
@@ -117,13 +110,13 @@ class _PewDisplayAndEditorState extends State<PewDisplayAndEditor> {
                       ),
                       Flexible(
                         child: TextFormField(
-                          initialValue: widget.pew.rows.toStringAsFixed(0),
+                          initialValue: pew.rows.toStringAsFixed(0),
                           keyboardType: TextInputType.number,
                           autovalidateMode: AutovalidateMode.always,
                           onChanged: (text) {
                             final value = int.tryParse(text);
                             if (value != null) {
-                              state.changePewNRows(widget.pew, value);
+                              state.changePewNRows(pew, value);
                             }
                           },
                           validator: (text) {
@@ -146,8 +139,8 @@ class _PewDisplayAndEditorState extends State<PewDisplayAndEditor> {
                   "Facing:",
                 ),
                 Transform.rotate(
-                  angle: room.angle(
-                      center, frontOfPew, widget.width, widget.height),
+                  angle: angle(
+                      centerP, frontOfPew, width, height),
                   child: Icon(
                     Icons.arrow_forward,
                     color: Colors.red,
@@ -165,7 +158,7 @@ class _PewDisplayAndEditorState extends State<PewDisplayAndEditor> {
                       color: Colors.red,
                       size: 25.0,
                     ),
-                    onPressed: () => state.counterClockwiseShuffle(widget.pew)
+                    onPressed: () => state.counterClockwiseShuffle(pew)
                   ),
                 )
               ],
@@ -175,7 +168,7 @@ class _PewDisplayAndEditorState extends State<PewDisplayAndEditor> {
       );
     }
     return GestureDetector(
-      onTap: () => context.read<RoomEditorState>().selectPew(widget.pew),
+      onTap: () => context.read<RoomEditorState>().selectPew(pew),
       child: Container(
         color: Colors.white.withOpacity(.6),
         width: 100,
@@ -183,9 +176,9 @@ class _PewDisplayAndEditorState extends State<PewDisplayAndEditor> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("""\"${widget.pew.name}\"
-Width:${widget.pew.width.toStringAsFixed(1)} ft
-Rows:${widget.pew.rows.toStringAsFixed(0)} """, style: style),
+            Text("""\"${pew.name}\"
+Width:${pew.width.toStringAsFixed(1)} ft
+Rows:${pew.rows.toStringAsFixed(0)} """, style: style),
             Row(
               children: [
                 Text(
@@ -193,8 +186,8 @@ Rows:${widget.pew.rows.toStringAsFixed(0)} """, style: style),
                   style: style,
                 ),
                 Transform.rotate(
-                  angle: room.angle(
-                      center, frontOfPew, widget.width, widget.height),
+                  angle: angle(
+                      centerP, frontOfPew, width, height),
                   child: Icon(
                     Icons.arrow_forward,
                     color: Colors.red,

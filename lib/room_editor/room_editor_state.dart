@@ -120,11 +120,11 @@ class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin {
 
   void formPew() {
     // put vertesies in counter clockwize order starting with 1st quadrant
-    final Point center =
-        room.center(selectedVertices.map((i) => room.vertices[i]).toList());
-    selectedVertices.sort((a, b) => room
-        .angle(center, room.vertices[b], 1, 1)
-        .compareTo(room.angle(center, room.vertices[a], 1, 1)));
+    final Point centerP =
+    center(selectedVertices.map((i) => room.vertices[i]).toList());
+    selectedVertices.sort((a, b) => 
+      angle(centerP, room.vertices[b], 1, 1)
+      .compareTo(angle(centerP, room.vertices[a], 1, 1)));
 
     // add edges if needed
     for (int indexInSelection = 0; indexInSelection < 4; indexInSelection++) {
