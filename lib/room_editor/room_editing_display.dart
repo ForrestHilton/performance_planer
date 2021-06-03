@@ -28,7 +28,7 @@ class EditingRoomDisplay extends StatelessWidget {
       child: Container(width: distance, color: color, height: dashSizeInPixels),
     );
     return Positioned(
-        bottom: height * r.y - dashSizeInPixels / 2,
+        top: height * r.y - dashSizeInPixels / 2,
         left: width * r.x - distance / 2,
         child: line);
   }
@@ -86,7 +86,7 @@ class EditingRoomDisplay extends StatelessWidget {
     maxY = pew.corners.map((i) => room.vertices[i].y).fold(double.infinity, (a, b) => max(a,b));
     final background = Positioned(
       left: width* minX,
-      bottom: height * minY,
+      top: height * minY,
       child:ClipPolygon(child: Container(color: Colors.white, width: width*(maxX-minX), height: height * (maxY-minY), sides: sides) );
       */
     return /*[background] +*/ pews;
@@ -104,7 +104,7 @@ class EditingRoomDisplay extends StatelessWidget {
                     onTapDown: (details) {
                       context.read<RoomEditorState>().addVertex(Point(
                           details.localPosition.dx / width,
-                          1 - details.localPosition.dy / height));
+                          details.localPosition.dy / height));
                     },
                     child: Image.file(
                         context.read<RoomEditorState>().roomFile.image,
@@ -121,7 +121,7 @@ class EditingRoomDisplay extends StatelessWidget {
             final i = room.vertices.indexOf(r);
             //TODO Dragable
             return Positioned(
-                bottom: r.y * height - vertexSizeInPixels / 2,
+                top: r.y * height - vertexSizeInPixels / 2,
                 left: r.x * width - vertexSizeInPixels / 2,
                 child: GestureDetector(
                     onTap: () {
@@ -143,7 +143,7 @@ class EditingRoomDisplay extends StatelessWidget {
                 .toList());
             return Positioned(
                 left: centerP.x * width - 100 / 2,
-                bottom: centerP.y * height - 81 / 2,
+                top: centerP.y * height - 81 / 2,
                 child: PewDisplayAndEditor(
                     pew: pew, width: width, height: height));
           }).toList(),

@@ -59,10 +59,12 @@ Line line(Point a, Point b) {
   return Line(m, _b);
 }
 
-/// the angle in CW radians from +x to the lane from a to b
+/// the angle in CW radians from +x to the lane from a to b.
+/// Note that since the origin is top left,
+/// this angle is flipped internally not by the user.
 double angle(Point a, Point b, double width, double height) {
   bool faceingLeft = b.x < a.x;
-  var ret = atan(line(a, b).m / width * height) + (faceingLeft ? pi : 0);
+  var ret = atan(- line(a, b).m / width * height) + (faceingLeft ? pi : 0);
   ret = -ret;
   if (ret < 0) {
     ret += 2 * pi;
