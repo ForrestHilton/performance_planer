@@ -84,12 +84,13 @@ class EditingRoomDisplay extends StatelessWidget {
     maxX = pew.corners.map((i) => room.vertices[i].x).fold(double.infinity, (a, b) => max(a,b)),
     minY = pew.corners.map((i) => room.vertices[i].y).fold(double.infinity, (a, b) => min(a,b)),
     maxY = pew.corners.map((i) => room.vertices[i].y).fold(double.infinity, (a, b) => max(a,b));
-
+/*
     final background = Positioned(
       left: width* minX,
       bottom: height * minY,
       child:ClipPolygon(child: Container(color: Colors.white, width: width*(maxX-minX), height: height * (maxY-minY), sides: sides) );
-    return [background] + pews;
+      */
+    return /*[background] +*/ pews;
   }
 
   @override
