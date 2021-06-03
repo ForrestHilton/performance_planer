@@ -121,10 +121,9 @@ class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin {
   void formPew() {
     // put vertesies in counter clockwize order starting with 1st quadrant
     final Point centerP =
-    center(selectedVertices.map((i) => room.vertices[i]).toList());
-    selectedVertices.sort((a, b) => 
-      angle(centerP, room.vertices[b], 1, 1)
-      .compareTo(angle(centerP, room.vertices[a], 1, 1)));
+        center(selectedVertices.map((i) => room.vertices[i]).toList());
+    selectedVertices.sort((a, b) => angle(centerP, room.vertices[b], 1, 1)
+        .compareTo(angle(centerP, room.vertices[a], 1, 1)));
 
     // add edges if needed
     for (int indexInSelection = 0; indexInSelection < 4; indexInSelection++) {
@@ -136,39 +135,6 @@ class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin {
     room.pews
         .add(Pew(name: 'Test', width: 20, rows: 12, corners: selectedVertices));
     notifyListeners();
-  }
-
-  void moveUp() {
-    editRoom(() {
-      // TODO: bounding box
-      for (int index in selectedVertices) {
-        room.vertices[index].y += 0.002;
-      }
-    });
-  }
-
-  void moveDown() {
-    editRoom(() {
-      for (int index in selectedVertices) {
-        room.vertices[index].y -= 0.002;
-      }
-    });
-  }
-
-  void moveRight() {
-    editRoom(() {
-      for (int index in selectedVertices) {
-        room.vertices[index].x += 0.002;
-      }
-    });
-  }
-
-  void moveLeft() {
-    editRoom(() {
-      for (int index in selectedVertices) {
-        room.vertices[index].x -= 0.002;
-      }
-    });
   }
 
   void undo() {

@@ -29,7 +29,6 @@ dependencies:
   archive: 
   path_provider:
   provider: ^5.0.0
-  polygon_clipper: ^1.0.2
 
 
 dev_dependencies:

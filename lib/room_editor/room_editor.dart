@@ -62,30 +62,6 @@ class Editor extends StatelessWidget {
           nullCondition: () => state.selectedVertices.length != 4,
           function: state.formPew),
       ActionDescription(
-        helpDescription: "Move all selected vertices",
-        keyBoardShortcut: {LogicalKeyboardKey.arrowUp},
-        nullCondition: () => state.selectedVertices == [],
-        function: state.moveUp,
-      ),
-      ActionDescription(
-        helpDescription: "Move all selected vertices",
-        keyBoardShortcut: {LogicalKeyboardKey.arrowDown},
-        nullCondition: () => state.selectedVertices == [],
-        function: state.moveDown,
-      ),
-      ActionDescription(
-        helpDescription: "Move all selected vertices",
-        keyBoardShortcut: {LogicalKeyboardKey.arrowRight},
-        nullCondition: () => state.selectedVertices == [],
-        function: state.moveRight,
-      ),
-      ActionDescription(
-        helpDescription: "Move all selected vertices",
-        keyBoardShortcut: {LogicalKeyboardKey.arrowLeft},
-        nullCondition: () => state.selectedVertices == [],
-        function: state.moveLeft,
-      ),
-      ActionDescription(
         name: "Undo",
         helpDescription: "Undo the last change",
         keyBoardShortcut: {LogicalKeyboardKey.keyZ, LogicalKeyboardKey.control},

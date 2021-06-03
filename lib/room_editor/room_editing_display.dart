@@ -7,7 +7,6 @@ import 'package:performance_planer/room_editor/pew_editor.dart';
 import 'package:provider/provider.dart';
 import 'room_editor_state.dart';
 import '../models/room_graph.dart';
-import 'package:polygon_clipper/polygon_clipper.dart';
 
 
 class EditingRoomDisplay extends StatelessWidget {
@@ -66,7 +65,7 @@ class EditingRoomDisplay extends StatelessWidget {
       final stepy = dy / (pew.rows + 1);
       final List<Point> positions = List.generate(pew.rows, (j) {
         int i = j + 1;
-        return Point(x: b.x + stepx * i, y: b.y + stepy * i);
+        return Point(b.x + stepx * i, b.y + stepy * i);
       });
       if (side == "left") {
         leftPewEnds = positions;
@@ -79,12 +78,12 @@ class EditingRoomDisplay extends StatelessWidget {
       for (int i = 0; i < pew.rows; i++)
         lineSegment(leftPewEnds[i], rightPewEnds[i], Colors.brown)
     ];
+    /*
     // background
     final double minX = pew.corners.map((i) => room.vertices[i].x).fold(double.infinity, (a, b) => min(a,b)),
     maxX = pew.corners.map((i) => room.vertices[i].x).fold(double.infinity, (a, b) => max(a,b)),
     minY = pew.corners.map((i) => room.vertices[i].y).fold(double.infinity, (a, b) => min(a,b)),
     maxY = pew.corners.map((i) => room.vertices[i].y).fold(double.infinity, (a, b) => max(a,b));
-/*
     final background = Positioned(
       left: width* minX,
       bottom: height * minY,
@@ -104,8 +103,8 @@ class EditingRoomDisplay extends StatelessWidget {
                 child: GestureDetector(
                     onTapDown: (details) {
                       context.read<RoomEditorState>().addVertex(Point(
-                          x: details.localPosition.dx / width,
-                          y: 1 - details.localPosition.dy / height));
+                          details.localPosition.dx / width,
+                          1 - details.localPosition.dy / height));
                     },
                     child: Image.file(
                         context.read<RoomEditorState>().roomFile.image,
