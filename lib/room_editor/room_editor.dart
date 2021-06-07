@@ -69,11 +69,13 @@ class Editor extends StatelessWidget {
       ),
     ];
 
+    final appBar = AppBar(
+      title: Text("Room Editor"),
+      backgroundColor: Colors.green,
+      actions: buttons(ribbonActions));
+
     return Scaffold(
-        appBar: AppBar(
-            title: Text("Room Editor"),
-            backgroundColor: Colors.green,
-            actions: buttons(ribbonActions)),
+        appBar: appBar,
         body: KeyBoardShortcuts(
             shortcuts: ribbonActions,
             child: LayoutBuilder(builder: (context, cnts) {
@@ -97,7 +99,8 @@ class Editor extends StatelessWidget {
 
               return Center(
                   child: Container(
-                      child: EditingRoomDisplay(width, height),
+                    child: EditingRoomDisplay(width, height,
+                      Offset((cnts.maxWidth-width)/2,appBar.preferredSize.height)),
                       width: width,
                       height: height));
             })));

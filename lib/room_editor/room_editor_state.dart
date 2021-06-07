@@ -1,4 +1,5 @@
 // Copyright 2021 Forrest Hilton; licensed under GPL-3.0-or-later; See COPYING.txt
+
 import '../models/room_graph.dart';
 import '../services/room_file.dart';
 import 'package:flutter/foundation.dart';
@@ -9,6 +10,13 @@ class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin {
   List<String> histrory = [];
   List<int> selectedVertices = [];
   int? selectedPew;
+  int? dragedVertex;
+
+  @override
+  RoomEditorState() {
+    roomFile = RoomFile(notifyListeners, onLoadOfAnotaitions);
+    roomFile.promptUserForPathAndCreate();
+  }
 
   void editRoom(void Function() action) {
     histrory.add(room.toRawJson());
@@ -28,6 +36,13 @@ class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin {
       selectedVertices.add(i);
     }
     notifyListeners();
+  }
+
+  void completeDragOfVertex(Point p) {
+    editRoom(() {
+      room.vertices[dragedVertex!] = p;
+    });
+    dragedVertex = null;
   }
 
   void selectPew(Pew pew) {
@@ -61,9 +76,14 @@ class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin {
     });
   }
 
-  void addVertex(Point p) {
+  /// either add a vertex or move the dragged vertex
+  void onClickUp(Point p) {
     editRoom(() {
-      this.room.vertices.add(p);
+      if (dragedVertex != null) {
+        room.vertices[dragedVertex!] = p;
+      } else {
+        this.room.vertices.add(p);
+      }
     });
   }
 
@@ -141,11 +161,5 @@ class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin {
     this.room = Room.fromRawJson(histrory.last);
     notifyListeners();
     histrory.removeLast();
-  }
-
-  @override
-  RoomEditorState() {
-    roomFile = RoomFile(notifyListeners, onLoadOfAnotaitions);
-    roomFile.promptUserForPathAndCreate();
   }
 }

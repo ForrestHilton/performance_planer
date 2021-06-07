@@ -8,11 +8,11 @@ import 'package:provider/provider.dart';
 import 'room_editor_state.dart';
 import '../models/room_graph.dart';
 
-
 class EditingRoomDisplay extends StatelessWidget {
   final double height;
   final double width;
-  EditingRoomDisplay(this.width, this.height);
+  final Offset globalOrigin;
+  EditingRoomDisplay(this.width, this.height, this.globalOrigin);
 
   double get vertexSizeInPixels => width / 80;
   double get dashSizeInPixels => width / 220;
@@ -94,6 +94,7 @@ class EditingRoomDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final state = context.watch<RoomEditorState>();
     final room = context.watch<RoomEditorState>().room;
     final selectedVertices = context.watch<RoomEditorState>().selectedVertices;
 
@@ -102,14 +103,11 @@ class EditingRoomDisplay extends StatelessWidget {
             Positioned(
                 child: GestureDetector(
                     onTapDown: (details) {
-                      context.read<RoomEditorState>().addVertex(Point(
-                          details.localPosition.dx / width,
+                      state.onClickUp(Point(details.localPosition.dx / width,
                           details.localPosition.dy / height));
                     },
-                    child: Image.file(
-                        context.read<RoomEditorState>().roomFile.image,
-                        width: width,
-                        height: height)))
+                    child: Image.file(state.roomFile.image,
+                        width: width, height: height)))
           ] +
           // the next line maps the edge data to a list of dots then combines
           // these lists only if there are edges.
@@ -119,17 +117,23 @@ class EditingRoomDisplay extends StatelessWidget {
               .toList() +
           room.vertices.map((r) {
             final i = room.vertices.indexOf(r);
-            //TODO Dragable
             return Positioned(
                 top: r.y * height - vertexSizeInPixels / 2,
                 left: r.x * width - vertexSizeInPixels / 2,
-                child: GestureDetector(
-                    onTap: () {
-                      context.read<RoomEditorState>().onClickVertex(i);
-                    },
-                    child: selectedVertices.contains(i)
-                        ? vertex(Colors.blue)
-                        : vertex()));
+                child: Draggable(
+                  onDragStarted: () => state.dragedVertex = i,
+                  onDragEnd: (details) {
+                    final off = details.offset - globalOrigin;
+                    final p = Point(off.dx / width, off.dy / height);
+                    state.completeDragOfVertex(p);
+                  },
+                  feedback: vertex(),
+                  child: GestureDetector(
+                      onTap: () => state.onClickVertex(i),
+                      child: selectedVertices.contains(i)
+                          ? vertex(Colors.blue)
+                          : vertex()),
+                ));
           }).toList() +
           // brown lines for the pews and a white transparent background
           (room.pews.isEmpty
