@@ -113,18 +113,17 @@ class EditingRoomDisplay extends StatelessWidget {
               .map((info) => lineSegment(
                   room.vertices[info.a], room.vertices[info.b], Colors.green))
               .toList() +
-          room.vertices.map((r) {
-            final i = room.vertices.indexOf(r);
+          room.vertices.map((p) {
+            final i = room.vertices.indexOf(p);
             return Positioned(
-                top: r.y * height - vertexSizeInPixels / 2,
-                left: r.x * width - vertexSizeInPixels / 2,
+                top: p.y * height - vertexSizeInPixels / 2,
+                left: p.x * width - vertexSizeInPixels / 2,
                 child: GestureDetector(
                     onPanUpdate: (details) {
-                      state.editRoom(() {
-                        room.vertices[i] = Point(
-                            r.x + details.delta.dx / width,
-                            r.y + details.delta.dy / height);
-                      });
+                      state.dragVertex(
+                          Point(p.x + details.delta.dx / width,
+                              p.y + details.delta.dy / height),
+                          i);
                     },
                     onTap: () => state.onClickVertex(i),
                     child: selectedVertices.contains(i)

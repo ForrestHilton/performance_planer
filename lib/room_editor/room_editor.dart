@@ -69,13 +69,11 @@ class Editor extends StatelessWidget {
       ),
     ];
 
-    final appBar = AppBar(
+    return Scaffold(
+        appBar: AppBar(
       title: Text("Room Editor"),
       backgroundColor: Colors.green,
-      actions: buttons(ribbonActions));
-
-    return Scaffold(
-        appBar: appBar,
+      actions: buttons(ribbonActions)),
         body: KeyBoardShortcuts(
             shortcuts: ribbonActions,
             child: LayoutBuilder(builder: (context, cnts) {

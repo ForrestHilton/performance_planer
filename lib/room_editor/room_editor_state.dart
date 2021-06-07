@@ -10,7 +10,6 @@ class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin {
   List<String> histrory = [];
   List<int> selectedVertices = [];
   int? selectedPew;
-  int? dragedVertex;
 
   @override
   RoomEditorState() {
@@ -61,6 +60,12 @@ class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin {
     });
   }
 
+  void dragVertex(Point p, int i) {
+    editRoom(() {
+      room.vertices[i] = p;
+    });
+  }
+
   void counterClockwiseShuffle(Pew pew) {
     editRoom(() {
       final first = pew.corners.first;
@@ -72,11 +77,7 @@ class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin {
   /// either add a vertex or move the dragged vertex
   void onClickUp(Point p) {
     editRoom(() {
-      if (dragedVertex != null) {
-        room.vertices[dragedVertex!] = p;
-      } else {
         this.room.vertices.add(p);
-      }
     });
   }
 
