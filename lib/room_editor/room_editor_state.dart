@@ -38,13 +38,6 @@ class RoomEditorState with ChangeNotifier, DiagnosticableTreeMixin {
     notifyListeners();
   }
 
-  void completeDragOfVertex(Point p) {
-    editRoom(() {
-      room.vertices[dragedVertex!] = p;
-    });
-    dragedVertex = null;
-  }
-
   void selectPew(Pew pew) {
     selectedPew = room.pews.indexOf(pew);
     notifyListeners();

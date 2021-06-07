@@ -11,8 +11,7 @@ import '../models/room_graph.dart';
 class EditingRoomDisplay extends StatelessWidget {
   final double height;
   final double width;
-  final Offset globalOrigin;
-  EditingRoomDisplay(this.width, this.height, this.globalOrigin);
+  EditingRoomDisplay(this.width, this.height);
 
   double get vertexSizeInPixels => width / 80;
   double get dashSizeInPixels => width / 220;
@@ -34,7 +33,6 @@ class EditingRoomDisplay extends StatelessWidget {
   }
 
   Widget vertex([Color? border]) => Container(
-        // TODO: change size to be screen dependent
         // TODO: fix colors
         width: vertexSizeInPixels,
         height: vertexSizeInPixels,
@@ -120,20 +118,18 @@ class EditingRoomDisplay extends StatelessWidget {
             return Positioned(
                 top: r.y * height - vertexSizeInPixels / 2,
                 left: r.x * width - vertexSizeInPixels / 2,
-                child: Draggable(
-                  onDragStarted: () => state.dragedVertex = i,
-                  onDragEnd: (details) {
-                    final off = details.offset - globalOrigin;
-                    final p = Point(off.dx / width, off.dy / height);
-                    state.completeDragOfVertex(p);
-                  },
-                  feedback: vertex(),
-                  child: GestureDetector(
-                      onTap: () => state.onClickVertex(i),
-                      child: selectedVertices.contains(i)
-                          ? vertex(Colors.blue)
-                          : vertex()),
-                ));
+                child: GestureDetector(
+                    onPanUpdate: (details) {
+                      state.editRoom(() {
+                        room.vertices[i] = Point(
+                            r.x + details.delta.dx / width,
+                            r.y + details.delta.dy / height);
+                      });
+                    },
+                    onTap: () => state.onClickVertex(i),
+                    child: selectedVertices.contains(i)
+                        ? vertex(Colors.blue)
+                        : vertex()));
           }).toList() +
           // brown lines for the pews and a white transparent background
           (room.pews.isEmpty

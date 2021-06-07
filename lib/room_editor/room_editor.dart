@@ -99,8 +99,7 @@ class Editor extends StatelessWidget {
 
               return Center(
                   child: Container(
-                    child: EditingRoomDisplay(width, height,
-                      Offset((cnts.maxWidth-width)/2,appBar.preferredSize.height)),
+                    child: EditingRoomDisplay(width, height),
                       width: width,
                       height: height));
             })));
